@@ -1,0 +1,246 @@
+PODS:
+  - Alamofire (4.6.0)
+  - AlamofireImage (3.3.0):
+    - Alamofire (~> 4.5)
+  - Bolts (1.9.0):
+    - Bolts/AppLinks (= 1.9.0)
+    - Bolts/Tasks (= 1.9.0)
+  - Bolts/AppLinks (1.9.0):
+    - Bolts/Tasks
+  - Bolts/Tasks (1.9.0)
+  - CardIO (5.4.1)
+  - Cosmos (13.0.0)
+  - DeviceKit (1.4.0)
+  - DropDown (2.0.2)
+  - FBSDKCoreKit (4.29.0):
+    - Bolts (~> 1.7)
+  - FBSDKLoginKit (4.29.0):
+    - FBSDKCoreKit
+  - FBSDKShareKit (4.29.0):
+    - FBSDKCoreKit
+  - Firebase/Auth (4.8.0):
+    - Firebase/Core
+    - FirebaseAuth (= 4.4.1)
+  - Firebase/Core (4.8.0):
+    - FirebaseAnalytics (= 4.0.5)
+    - FirebaseCore (= 4.0.13)
+  - Firebase/Messaging (4.8.0):
+    - Firebase/Core
+    - FirebaseMessaging (= 2.0.8)
+  - FirebaseAnalytics (4.0.5):
+    - FirebaseCore (~> 4.0)
+    - FirebaseInstanceID (~> 2.0)
+    - "GoogleToolboxForMac/NSData+zlib (~> 2.1)"
+    - nanopb (~> 0.3)
+  - FirebaseAuth (4.4.1):
+    - FirebaseAnalytics (~> 4.0)
+    - "GoogleToolboxForMac/NSDictionary+URLArguments (~> 2.1)"
+    - GTMSessionFetcher/Core (~> 1.1)
+  - FirebaseCore (4.0.13):
+    - "GoogleToolboxForMac/NSData+zlib (~> 2.1)"
+  - FirebaseInstanceID (2.0.8):
+    - FirebaseCore (~> 4.0)
+  - FirebaseMessaging (2.0.8):
+    - FirebaseAnalytics (~> 4.0)
+    - FirebaseCore (~> 4.0)
+    - FirebaseInstanceID (~> 2.0)
+    - GoogleToolboxForMac/Logger (~> 2.1)
+    - Protobuf (~> 3.1)
+  - Google-Mobile-Ads-SDK (7.27.0)
+  - GoogleAnalytics (3.17.0)
+  - GoogleMaps (2.5.0):
+    - GoogleMaps/Maps (= 2.5.0)
+  - GoogleMaps/Base (2.5.0)
+  - GoogleMaps/Maps (2.5.0):
+    - GoogleMaps/Base
+  - GooglePlacePicker (2.5.0):
+    - GoogleMaps (= 2.5.0)
+    - GooglePlaces (= 2.5.0)
+  - GooglePlaces (2.5.0):
+    - GoogleMaps/Base (= 2.5.0)
+  - GoogleSignIn (4.1.1):
+    - "GoogleToolboxForMac/NSDictionary+URLArguments (~> 2.1)"
+    - "GoogleToolboxForMac/NSString+URLArguments (~> 2.1)"
+    - GTMOAuth2 (~> 1.0)
+    - GTMSessionFetcher/Core (~> 1.1)
+  - GoogleToolboxForMac/DebugUtils (2.1.3):
+    - GoogleToolboxForMac/Defines (= 2.1.3)
+  - GoogleToolboxForMac/Defines (2.1.3)
+  - GoogleToolboxForMac/Logger (2.1.3):
+    - GoogleToolboxForMac/Defines (= 2.1.3)
+  - "GoogleToolboxForMac/NSData+zlib (2.1.3)":
+    - GoogleToolboxForMac/Defines (= 2.1.3)
+  - "GoogleToolboxForMac/NSDictionary+URLArguments (2.1.3)":
+    - GoogleToolboxForMac/DebugUtils (= 2.1.3)
+    - GoogleToolboxForMac/Defines (= 2.1.3)
+    - "GoogleToolboxForMac/NSString+URLArguments (= 2.1.3)"
+  - "GoogleToolboxForMac/NSString+URLArguments (2.1.3)"
+  - GTMOAuth2 (1.1.6):
+    - GTMSessionFetcher (~> 1.1)
+  - GTMSessionFetcher (1.1.12):
+    - GTMSessionFetcher/Full (= 1.1.12)
+  - GTMSessionFetcher/Core (1.1.12)
+  - GTMSessionFetcher/Full (1.1.12):
+    - GTMSessionFetcher/Core (= 1.1.12)
+  - ImageSlideshow (1.4.1):
+    - ImageSlideshow/Core (= 1.4.1)
+  - ImageSlideshow/Alamofire (1.4.1):
+    - AlamofireImage (~> 3.0)
+    - ImageSlideshow/Core
+  - ImageSlideshow/Core (1.4.1)
+  - IQKeyboardManagerSwift (5.0.7)
+  - nanopb (0.3.8):
+    - nanopb/decode (= 0.3.8)
+    - nanopb/encode (= 0.3.8)
+  - nanopb/decode (0.3.8)
+  - nanopb/encode (0.3.8)
+  - NVActivityIndicatorView (4.1.1):
+    - NVActivityIndicatorView/Presenter (= 4.1.1)
+  - NVActivityIndicatorView/Presenter (4.1.1)
+  - OpalImagePicker (1.6.0)
+  - PayPal-iOS-SDK (2.18.0):
+    - PayPal-iOS-SDK/CardIO (= 2.18.0)
+    - PayPal-iOS-SDK/Core (= 2.18.0)
+  - PayPal-iOS-SDK/CardIO (2.18.0):
+    - CardIO (~> 5.4.1)
+  - PayPal-iOS-SDK/Core (2.18.0)
+  - Protobuf (3.5.0)
+  - RangeSeekSlider (1.7.0)
+  - RichEditorView (4.0.0)
+  - SDWebImage (4.2.3):
+    - SDWebImage/Core (= 4.2.3)
+  - SDWebImage/Core (4.2.3)
+  - SlideMenuControllerSwift (4.0.0)
+  - Stripe (11.5.0)
+  - SwiftyStoreKit (0.12.0)
+  - TextFieldEffects (1.4.0)
+  - UICircularProgressRing (1.7.5)
+  - XLPagerTabStrip (8.0.0)
+  - YouTubePlayer (0.4.0)
+
+DEPENDENCIES:
+  - Alamofire
+  - Cosmos
+  - DeviceKit
+  - DropDown
+  - FBSDKCoreKit
+  - FBSDKLoginKit
+  - FBSDKShareKit
+  - Firebase/Auth
+  - Firebase/Core
+  - Firebase/Messaging
+  - Google-Mobile-Ads-SDK
+  - GoogleAnalytics
+  - GoogleMaps
+  - GooglePlacePicker
+  - GooglePlaces
+  - GoogleSignIn
+  - ImageSlideshow
+  - ImageSlideshow/Alamofire
+  - IQKeyboardManagerSwift
+  - NVActivityIndicatorView
+  - OpalImagePicker
+  - PayPal-iOS-SDK
+  - RangeSeekSlider
+  - RichEditorView
+  - SDWebImage
+  - SlideMenuControllerSwift
+  - Stripe
+  - SwiftyStoreKit
+  - TextFieldEffects
+  - UICircularProgressRing
+  - XLPagerTabStrip (~> 8.0)
+  - YouTubePlayer
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - Alamofire
+    - AlamofireImage
+    - Bolts
+    - CardIO
+    - Cosmos
+    - DeviceKit
+    - DropDown
+    - FBSDKCoreKit
+    - FBSDKLoginKit
+    - FBSDKShareKit
+    - Firebase
+    - FirebaseAnalytics
+    - FirebaseAuth
+    - FirebaseCore
+    - FirebaseInstanceID
+    - FirebaseMessaging
+    - Google-Mobile-Ads-SDK
+    - GoogleAnalytics
+    - GoogleMaps
+    - GooglePlacePicker
+    - GooglePlaces
+    - GoogleSignIn
+    - GoogleToolboxForMac
+    - GTMOAuth2
+    - GTMSessionFetcher
+    - ImageSlideshow
+    - IQKeyboardManagerSwift
+    - nanopb
+    - NVActivityIndicatorView
+    - OpalImagePicker
+    - PayPal-iOS-SDK
+    - Protobuf
+    - RangeSeekSlider
+    - RichEditorView
+    - SDWebImage
+    - SlideMenuControllerSwift
+    - Stripe
+    - SwiftyStoreKit
+    - TextFieldEffects
+    - UICircularProgressRing
+    - XLPagerTabStrip
+    - YouTubePlayer
+
+SPEC CHECKSUMS:
+  Alamofire: f41a599bd63041760b26d393ec1069d9d7b917f4
+  AlamofireImage: 2e784dc5d00f04903a52c1d169181469c805c3df
+  Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
+  CardIO: 56983b39b62f495fc6dae9ad7cf875143df06443
+  Cosmos: af3973becc045af335b64498c9812034876b7661
+  DeviceKit: fa74d97499660e88081718b16688e19217595dba
+  DropDown: 75562633a203f57a917021b4edb96c76f293b0ec
+  FBSDKCoreKit: 6f139173dc63a1deaff4430a55f2fe5bb222d2af
+  FBSDKLoginKit: 56a057ca6822535ea0faa25f57a7c41edb697fd4
+  FBSDKShareKit: 18a2cd118aef11dd657fe7e8b64bae5c719088b2
+  Firebase: 710decbbc6d9d48530e9a5dba3209740c3532e05
+  FirebaseAnalytics: 5b02a63ead2c3f0259cfc7f15e053e440587ecf8
+  FirebaseAuth: dc0dd403beca5b2b016aac89c2d0b8dad1c81926
+  FirebaseCore: 3c02ec652db3d03fdc8bc6d9154af3e20d64b6f5
+  FirebaseInstanceID: 81df5805a08001e69138664bdd02c6719a9ac80f
+  FirebaseMessaging: dfdcd307c2382290a1e297a81d0f18370f5b1bcd
+  Google-Mobile-Ads-SDK: 83f7f890e638ce8f1debd440ea363338c9f6be3b
+  GoogleAnalytics: f42cc53a87a51fe94334821868d9c8481ff47a7b
+  GoogleMaps: c087b8e5dfe87ca6ebf59adb9b4894a4146bec4f
+  GooglePlacePicker: 1573e644ab54564d95c2643edc0f29091609e966
+  GooglePlaces: dd70d9d71ea1c7944846afe67de3712c99b30a77
+  GoogleSignIn: 3fdaa34a2ba04dbd7a25d7db39aecb0da98d5bdc
+  GoogleToolboxForMac: 2501e2ad72a52eb3dfe7bd9aee7dad11b858bd20
+  GTMOAuth2: c77fe325e4acd453837e72d91e3b5f13116857b2
+  GTMSessionFetcher: ebaa1f79a5366922c1735f1566901f50beba23b7
+  ImageSlideshow: 1bb0e610e28a71e8936d57265d882f61714a470b
+  IQKeyboardManagerSwift: 30fb3a61de1af53a95e02b80fb54ed0a19d5ede5
+  nanopb: 5601e6bca2dbf1ed831b519092ec110f66982ca3
+  NVActivityIndicatorView: 60109b9bf46efc2e71ab81453196ccdfdfeea870
+  OpalImagePicker: 1b8bdb6b5f426f493ba94faf6cabc30fcc663f91
+  PayPal-iOS-SDK: 3fc74982a68d54eeaf39e09f507f279dc2291860
+  Protobuf: 8a9838fba8dae3389230e1b7f8c104aa32389c03
+  RangeSeekSlider: 0386c5a9aa5ebcb2fa5238e8a627280cf46c7c0a
+  RichEditorView: e5990b1a092539559def9df135e064b29ab97e68
+  SDWebImage: 791bb72962b3492327ddcac4b1880bd1b5458431
+  SlideMenuControllerSwift: 021d6318201c53d4d4d3710517d43d6c556c7dd0
+  Stripe: 10761682d20dc491c52287393c800db056c9748d
+  SwiftyStoreKit: 59c57f4aa11d3c564e7e5f589eae8bf98ac59f3d
+  TextFieldEffects: 4ee41b5216e674d55fb6ac25107bf1af7629176f
+  UICircularProgressRing: b35e45dc82aac8009d038ef4d2e19718675df2bd
+  XLPagerTabStrip: d1ab378af0923320ec0b5eab11d7b2f803d31261
+  YouTubePlayer: 028451f6772f372d4759866db99824c676ac1473
+
+PODFILE CHECKSUM: cc84fbee88f0c8a1d4721737aec97dec7ea34db8
+
+COCOAPODS: 1.5.0

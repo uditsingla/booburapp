@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   type = "0"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/LeftMenu/LeftController.swift"
+            timestampString = "552416545.698678"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "550"
+            endingLineNumber = "550"
+            landmarkName = "tableView(_:didSelectRowAt:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/LeftMenu/LeftController.swift"
+            timestampString = "552416545.698754"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "238"
+            endingLineNumber = "238"
+            landmarkName = "changePage(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/LeftMenu/LeftController.swift"
+            timestampString = "552416545.698807"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "299"
+            endingLineNumber = "299"
+            landmarkName = "initializePagesView()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/PagesController/PagesController.swift"
+            timestampString = "552416545.698858"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
+            landmarkName = "viewWillAppear(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/PagesController/PagesController.swift"
+            timestampString = "552416545.698923"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
+            landmarkName = "viewWillAppear(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/PagesController/PagesController.swift"
+            timestampString = "552416545.698981"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
+            landmarkName = "viewWillAppear(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/PagesController/PagesController.swift"
+            timestampString = "552416545.699036"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
+            landmarkName = "viewWillAppear(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/PagesController/PagesController.swift"
+            timestampString = "552416545.699093"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
+            landmarkName = "viewWillAppear(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/PagesController/PagesController.swift"
+            timestampString = "552416545.6991431"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "16"
+            endingLineNumber = "16"
+            landmarkName = "PagesController"
+            landmarkType = "3">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.delegate.getter : Swift.Optional&lt;AdForest.leftMenuProtocol&gt;"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416036.314492"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "81">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.delegate.setter : Swift.Optional&lt;AdForest.leftMenuProtocol&gt;"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416036.317302"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "119">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.init(style: __C.UITableViewStyle) -&gt; AdForest.PagesController"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416036.320642"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "71">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.init(nibName: Swift.Optional&lt;Swift.String&gt;, bundle: Swift.Optional&lt;__ObjC.Bundle&gt;) -&gt; AdForest.PagesController"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416036.323691"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "116">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.init(coder: __ObjC.NSCoder) -&gt; Swift.Optional&lt;AdForest.PagesController&gt;"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416036.326602"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "86">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AdForest/Controllers/PagesController/PagesController.swift"
+            timestampString = "552416545.699188"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "16"
+            endingLineNumber = "16"
+            landmarkName = "PagesController"
+            landmarkType = "3">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.delegate.getter : Swift.Optional&lt;AdForest.leftMenuProtocol&gt;"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416013.206661"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "81">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.delegate.setter : Swift.Optional&lt;AdForest.leftMenuProtocol&gt;"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416013.209609"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "119">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.init(style: __C.UITableViewStyle) -&gt; AdForest.PagesController"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416013.211719"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "71">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.init(nibName: Swift.Optional&lt;Swift.String&gt;, bundle: Swift.Optional&lt;__ObjC.Bundle&gt;) -&gt; AdForest.PagesController"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416013.213835"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "116">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AdForest.PagesController.init(coder: __ObjC.NSCoder) -&gt; Swift.Optional&lt;AdForest.PagesController&gt;"
+                  moduleName = "AdForest"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/visionvivante/Public/latest_adforest/main_files/AdForest/AdForest/Controllers/PagesController/PagesController.swift"
+                  timestampString = "552416013.2163039"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "16"
+                  endingLineNumber = "16"
+                  offsetFromSymbolStart = "86">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>
