@@ -196,11 +196,14 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 
                 let userModel = UserRegisterRoot(fromDictionary: objUser)
                 
-                if let imgUrl = URL(string: userModel.data.profileImg) {
-                    self.imgProfilePicture.sd_setImage(with: imgUrl, completed: nil)
-                    self.imgProfilePicture.sd_setShowActivityIndicatorView(true)
-                    self.imgProfilePicture.sd_setIndicatorStyle(.gray)
+                if let profileImage = userModel.data.profileImg {
+                    if let imgUrl = URL(string: profileImage) {
+                        self.imgProfilePicture.sd_setImage(with: imgUrl, completed: nil)
+                        self.imgProfilePicture.sd_setShowActivityIndicatorView(true)
+                        self.imgProfilePicture.sd_setIndicatorStyle(.gray)
+                    }
                 }
+                
                 if let name = userModel.data.displayName {
                     self.lblName.text = name
                 }

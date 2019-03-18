@@ -64,7 +64,7 @@ class MarkersOnMapController: UIViewController,GMSMapViewDelegate, UICollectionV
     
     func showLocationButton() {
         let button = UIButton(type: .custom)
-        let origImage = UIImage(named: "location")
+        let origImage = UIImage(named: "list")
         let tintedImage = origImage?.withRenderingMode(.alwaysTemplate)
         button.setImage(tintedImage, for: .normal)
         button.tintColor = .white

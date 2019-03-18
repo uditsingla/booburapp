@@ -12,7 +12,7 @@ import DeviceKit
 
 class Constants {
     struct  URL { // http://boobur.com/wp-json/wp/v2/pages/2
-        static let ipAddress =    "http://boobur.com/"
+        static let ipAddress =    "https://boobur.com/"
         static let baseUrl =  ipAddress + "" + "wp-json/adforest/v1/"
         
         static let homeData = "home"
