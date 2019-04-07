@@ -8,10 +8,14 @@
 
 import UIKit
 import GoogleMaps
+import NVActivityIndicatorView
 
-class MarkersOnMapController: UIViewController,GMSMapViewDelegate, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+
+class MarkersOnMapController: UIViewController,GMSMapViewDelegate, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, NVActivityIndicatorViewable {
 
     //MARK:- Properties
+    var isAllPlacesRequired : Bool = false
+    var delegate :leftMenuProtocol?
     @IBOutlet weak var viewMap: GMSMapView!
     var dataArray = [CategoryAd]()
     var arrMarkers = [GMSMarker]()
@@ -50,16 +54,55 @@ class MarkersOnMapController: UIViewController,GMSMapViewDelegate, UICollectionV
     override func viewDidLoad() {
         super.viewDidLoad()
         self.showBackButton()
-        self.dataArray = AddsHandler.sharedInstance.objCategoryArray
         self.viewMap.delegate = self
-        self.setMarkers()
+        setMapsData(categoryData: AddsHandler.sharedInstance.objCategoryArray)
         self.showLocationButton()
-
+        self.addBackButtonToNavigationBar()
         self.title = "Search Results"
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+
+        if isAllPlacesRequired{
+            let dictInternal : NSMutableDictionary = NSMutableDictionary()
+            let dictMain : NSMutableDictionary = NSMutableDictionary()
+            dictMain.setValue(dictInternal, forKey: "custom_fields")
+            self.adForest_postData(parameter: dictMain)
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(true)
+        isAllPlacesRequired = false
+    }
+    
+    //MARK:- Custom
+    
+    func addBackButtonToNavigationBar() {
+        let leftButton = UIBarButtonItem(image: #imageLiteral(resourceName: "backbutton"), style: .done, target: self, action: #selector(moveToParentController))
+        leftButton.tintColor = UIColor.white
+        self.navigationItem.leftBarButtonItem = leftButton
+    }
+    
+    @objc func moveToParentController() {
+        if isAllPlacesRequired {
+            self.delegate?.changeViewController(.main)
+        }else{
+            self.navigationController?.popViewController(animated: true)
+        }
         
-        let indexPath = IndexPath(row: 0, section: 0)
-        collectionview.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
-        collectionview.delegate?.collectionView!(collectionview, didSelectItemAt: indexPath)
+    }
+    
+    func setMapsData(categoryData : [CategoryAd]){
+        if categoryData.count>0{
+            self.dataArray = categoryData
+            self.setMarkers()
+            collectionview.reloadData()
+            let indexPath = IndexPath(row: 0, section: 0)
+            collectionview.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
+            collectionview.delegate?.collectionView!(collectionview, didSelectItemAt: indexPath)
+        }
     }
     
     func showLocationButton() {
@@ -104,7 +147,6 @@ class MarkersOnMapController: UIViewController,GMSMapViewDelegate, UICollectionV
             locationMarker.icon = GMSMarker.markerImage(with: UIColor.red)
             locationMarker.map = viewMap
             
-            
             if index == 0{
                 self.viewMap.camera = GMSCameraPosition.camera(withTarget: coordinate, zoom: 14.0)
                 viewMap.selectedMarker = locationMarker
@@ -114,7 +156,40 @@ class MarkersOnMapController: UIViewController,GMSMapViewDelegate, UICollectionV
         }
     }
     
+    //MARK:- API Hit
+    func adForest_postData(parameter : NSDictionary) {
+        self.showLoader()
+        AddsHandler.searchData(parameter: parameter, success: { (successResponse) in
+            NVActivityIndicatorPresenter.sharedInstance.stopAnimating()
+            if successResponse.success {
+                AddsHandler.sharedInstance.objCategoryArray = successResponse.data.ads
+                AddsHandler.sharedInstance.objCategotyAdArray = successResponse.data.featuredAds.ads
+                self.isFromAdvanceSearch = false
+                self.featureAddTitle = successResponse.data.featuredAds.text
+                self.addcategoryTitle = successResponse.topbar.countAds
+                self.currentPage = successResponse.pagination.currentPage
+                self.maximumPage = successResponse.pagination.maxNumPages
+                self.title = successResponse.extra.title
+                self.setMapsData(categoryData: AddsHandler.sharedInstance.objCategoryArray)
+            }
+            else {
+                let alert = Constants.showBasicAlert(message: successResponse.message)
+                self.presentVC(alert)
+            }
+        }) { (error) in
+            NVActivityIndicatorPresenter.sharedInstance.stopAnimating()
+            let alert = Constants.showBasicAlert(message: error.message)
+            self.presentVC(alert)
+        }
+    }
 
+    
+    //MARK:- Custom Functions
+    func showLoader() {
+        self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
+    }
+    
+    
     //MARK:- GMS View Delegate Method
     func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
         

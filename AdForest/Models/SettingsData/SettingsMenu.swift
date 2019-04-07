@@ -27,12 +27,14 @@ struct SettingsMenu {
     var register : String!
     var search : String!
     var submenu : SettingsSubMenu!
+    var mapList : String!
     
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
      */
     init(fromDictionary dictionary: [String:Any]){
+        mapList = dictionary["mapList"] as? String
         blog = dictionary["blog"] as? String
         favAds = dictionary["fav_ads"] as? String
         featuredAds = dictionary["featured_ads"] as? String
@@ -73,6 +75,9 @@ struct SettingsMenu {
         }
         if home != nil{
             dictionary["home"] = home
+        }
+        if mapList != nil{
+            dictionary["mapList"] = mapList
         }
         if inactiveAds != nil{
             dictionary["inactive_ads"] = inactiveAds

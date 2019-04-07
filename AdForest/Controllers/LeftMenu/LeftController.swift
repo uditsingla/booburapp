@@ -32,9 +32,10 @@ enum pageMenu: Int {
 enum GuestMenu: Int {
     case main = 1
     case advancedSearch
-    case packages
+    case mapList
     case login
     case register
+    //    case packages
 }
 
 enum OtherGuestMenues: Int {
@@ -101,7 +102,7 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
     //#imageLiteral(resourceName: "packages"),
     // #imageLiteral(resourceName: "myads"), #imageLiteral(resourceName: "inactiveads")
     var imagesArray = [#imageLiteral(resourceName: "home"), #imageLiteral(resourceName: "profile"), #imageLiteral(resourceName: "search"), #imageLiteral(resourceName: "featuredAds"), #imageLiteral(resourceName: "favourite"),#imageLiteral(resourceName: "profile")]
-    var guestImagesArray = [#imageLiteral(resourceName: "home"), #imageLiteral(resourceName: "search"), #imageLiteral(resourceName: "packages"), #imageLiteral(resourceName: "logout"), #imageLiteral(resourceName: "profile")]
+    var guestImagesArray = [#imageLiteral(resourceName: "home"), #imageLiteral(resourceName: "search"), #imageLiteral(resourceName: "location"), #imageLiteral(resourceName: "logout"), #imageLiteral(resourceName: "profile")]
     var othersArrayImages = [#imageLiteral(resourceName: "logout")]
     //var guestOtherArray = [#imageLiteral(resourceName: "blog")]
     
@@ -118,6 +119,7 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     var viewLogin: UIViewController!
     var viewRegister: UIViewController!
+    var mapList: UIViewController!
     
     // Pages Controller
     
@@ -264,8 +266,12 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
             self.slideMenuController()?.changeMainViewController(self.viewHome, close: true)
         case .advancedSearch:
             self.slideMenuController()?.changeMainViewController(self.viewAdvancedSearch, close: true)
+        case .mapList:
+            self.slideMenuController()?.changeMainViewController(self.mapList, close: true)
+            /*
         case .packages:
             self.slideMenuController()?.changeMainViewController(self.viewPackages, close: true)
+             */
         case .login:
             self.slideMenuController()?.changeMainViewController(self.viewLogin, close: true)
         case .register:
@@ -325,8 +331,15 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
         searchView.delegate = self
         self.viewAdvancedSearch = UINavigationController(rootViewController: searchView)
         
+        let mapList = storyboard?.instantiateViewController(withIdentifier: "MarkersOnMapController") as! MarkersOnMapController
+        mapList.isAllPlacesRequired = true
+        mapList.delegate = self
+        self.mapList = UINavigationController(rootViewController: mapList)
+        
+        /*
         let packageView = storyboard?.instantiateViewController(withIdentifier: "PackagesController") as! PackagesController
         self.viewPackages = UINavigationController(rootViewController: packageView)
+        */
         
         let loginView = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as! LoginViewController
         self.viewLogin = UINavigationController(rootViewController: loginView)
@@ -443,13 +456,13 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 else if row == 1 {
                     cell.lblName.text = objData?.menu.search
                 }
-                    /*else if row == 2 {
-                     cell.lblName.text = objData?.menu.packages
-                     }*/
                 else if row == 2 {
+                     cell.lblName.text = "Map List"
+                     }
+                else if row == 3 {
                     cell.lblName.text = objData?.menu.login
                 }
-                else if row == 3 {
+                else if row == 4 {
                     cell.lblName.text = objData?.menu.register
                 }
             }
