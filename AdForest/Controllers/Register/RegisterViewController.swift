@@ -333,6 +333,10 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
     
     @IBAction func actionLoginHere(_ sender: Any) {
         self.navigationController?.popViewController(animated: true)
+        if self.navigationController?.viewControllers.count == 1{
+            let loginView = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as! LoginViewController
+            self.navigationController?.pushViewController(loginView, animated: true)
+        }
     }
     
     

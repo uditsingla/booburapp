@@ -14,13 +14,16 @@ enum leftMenues : Int {
     case main = 1
     case profile
     case advancedSearch
-    //case messages
-    //  case packages
+    case mapList
+    case contactUs
+    /*
+    case messages
+    case packages
     case myAds
     case inactiveAds
-    // case featuredAds
+    case featuredAds
     case favAds
-    case contactUs
+     */
 }
 
 enum pageMenu: Int {
@@ -35,7 +38,9 @@ enum GuestMenu: Int {
     case mapList
     case login
     case register
-    //    case packages
+    /*
+    case packages
+     */
 }
 
 enum OtherGuestMenues: Int {
@@ -101,9 +106,11 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var pagesArray = [String]()
     //#imageLiteral(resourceName: "packages"),
     // #imageLiteral(resourceName: "myads"), #imageLiteral(resourceName: "inactiveads")
-    var imagesArray = [#imageLiteral(resourceName: "home"), #imageLiteral(resourceName: "profile"), #imageLiteral(resourceName: "search"), #imageLiteral(resourceName: "featuredAds"), #imageLiteral(resourceName: "favourite"),#imageLiteral(resourceName: "profile")]
+    var imagesArray = [#imageLiteral(resourceName: "home"), #imageLiteral(resourceName: "profile"), #imageLiteral(resourceName: "search"), #imageLiteral(resourceName: "location"), #imageLiteral(resourceName: "favourite")]
     var guestImagesArray = [#imageLiteral(resourceName: "home"), #imageLiteral(resourceName: "search"), #imageLiteral(resourceName: "location"), #imageLiteral(resourceName: "logout"), #imageLiteral(resourceName: "profile")]
-    var othersArrayImages = [#imageLiteral(resourceName: "logout")]
+    var othersArrayImages = [#imageLiteral(resourceName: "blog"),#imageLiteral(resourceName: "logout")]
+    var pageImages = [#imageLiteral(resourceName: "about"),#imageLiteral(resourceName: "faq")]
+    
     //var guestOtherArray = [#imageLiteral(resourceName: "blog")]
     
     var viewHome: UIViewController!
@@ -218,7 +225,6 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     
     func changeViewController(_ menu: leftMenues) {
-        
         switch menu {
         case .main:
             self.slideMenuController()?.changeMainViewController(self.viewHome, close: true)
@@ -226,23 +232,24 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
             self.slideMenuController()?.changeMainViewController(self.viewProfile, close: true)
         case .advancedSearch:
             self.slideMenuController()?.changeMainViewController(self.viewAdvancedSearch, close: true)
-//        case .messages:
-//            self.slideMenuController()?.changeMainViewController(self.viewMessages, close: true)
-            // case .packages:
-        //      self.slideMenuController()?.changeMainViewController(self.viewPackages, close: true)
+        case .mapList:
+            self.slideMenuController()?.changeMainViewController(self.mapList, close: true)
+        case .contactUs:
+            self.slideMenuController()?.changeMainViewController(self.viewContactUs, close: true)
+        /*
+        case .messages:
+            self.slideMenuController()?.changeMainViewController(self.viewMessages, close: true)
+        case .packages:
+              self.slideMenuController()?.changeMainViewController(self.viewPackages, close: true)
         case .myAds:
             self.slideMenuController()?.changeMainViewController(self.viewMyAds, close: true)
         case .inactiveAds:
             self.slideMenuController()?.changeMainViewController(self.viewInactiveAds, close: true)
-            // case .featuredAds:
-        //     self.slideMenuController()?.changeMainViewController(self.viewFeaturedAds, close: true)
+        case .featuredAds:
+             self.slideMenuController()?.changeMainViewController(self.viewFeaturedAds, close: true)
         case .favAds:
             self.slideMenuController()?.changeMainViewController(self.viewFavAds, close: true)
-        case .contactUs:
-            self.slideMenuController()?.changeMainViewController(self.viewContactUs, close: true)
-            
-        default:
-            break
+        */
         }
     }
     
@@ -250,7 +257,6 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
         switch menu {
         case .detailPage:
             self.slideMenuController()?.changeMainViewController(self.viewPages, close: true)
-            
         case .termsPage:
             self.slideMenuController()?.changeMainViewController(self.termsPage, close: true)
         default:
@@ -312,6 +318,11 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         let contactUSView = storyboard?.instantiateViewController(withIdentifier: "ContactUsController") as! ContactUsController
         self.viewContactUs = UINavigationController(rootViewController: contactUSView)
+        
+        let mapList = storyboard?.instantiateViewController(withIdentifier: "MarkersOnMapController") as! MarkersOnMapController
+        mapList.isAllPlacesRequired = true
+        mapList.delegate = self
+        self.mapList = UINavigationController(rootViewController: mapList)
     }
     
     func initializePagesView() {
@@ -413,7 +424,7 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }
             else {
                 //value = 9
-                value = 6
+                value = 5
             }
         }
             
@@ -478,6 +489,9 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 else if row == 2 {
                     cell.lblName.text = objData?.menu.search
                 }
+                else if row == 3 {
+                    cell.lblName.text = "Map List"
+                }
 //                else if row == 3 {
 //                    cell.lblName.text = objData?.menu.messages
 //                }
@@ -493,9 +507,9 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
                     //                else if row == 4 {
                     //                    cell.lblName.text = objData?.menu.featuredAds
                     //                }
-                else if row == 3 {
-                    cell.lblName.text = objData?.menu.favAds
-                }
+//                else if row == 3 {
+//                    cell.lblName.text = objData?.menu.favAds
+//                }
                 else if row == 4 {
                     cell.lblName.text = "Contact Us"
                 }
@@ -509,6 +523,8 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
             else {
                 let objPages = UserHandler.sharedInstance.objSettingsMenu[indexPath.row]
                 cell.lblName.text = objPages.pageTitle
+                cell.imgPicture.image = pageImages[indexPath.row]
+
                 //print("05")
                 //print(objPages)
                 //print("0505")
@@ -522,7 +538,7 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
              }
              } */
             
-            cell.imgPicture.image = #imageLiteral(resourceName: "logout")
+            cell.imgPicture.image = othersArrayImages[indexPath.row]
             if row == 0 {
                 //cell.lblName.text = objData?.menu.blog
                 //cell.lblName.text = ""
@@ -575,12 +591,14 @@ class LeftController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }
             else {
                 if let menu = leftMenues(rawValue: indexPath.row+1) {
-                    if indexPath.row == 4 {
-                        self.changeViewController(.contactUs)
-                    }
-                    else {
-                        self.changeViewController(menu)
-                    }
+                    self.changeViewController(menu)
+
+//                    if indexPath.row == 4 {
+//                        self.changeViewController(.contactUs)
+//                    }
+//                    else {
+//                        self.changeViewController(menu)
+//                    }
                 }
             }
         }
