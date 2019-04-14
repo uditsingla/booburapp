@@ -55,7 +55,6 @@ extension UIImageView {
         } else {
             cornor = frame.height / 2
         }
-        
         layer.borderWidth = 1
         layer.masksToBounds = true
         layer.borderColor = UIColor.clear.cgColor
@@ -75,7 +74,6 @@ extension UIImageView {
         } else {
             blurStyle = .light
         }
-        
         let blurEffect = UIBlurEffect(style: blurStyle)
         let blurEffectView = UIVisualEffectView(effect: blurEffect)
         blurEffectView.frame = self.bounds
@@ -102,5 +100,19 @@ extension UIImageView {
     func tintImageColor(color : UIColor) {
         self.image = self.image!.withRenderingMode(UIImageRenderingMode.alwaysTemplate)
         self.tintColor = color
+    }
+}
+
+
+extension UIImage {
+    func tint(with color: UIColor) -> UIImage {
+        var image = withRenderingMode(.alwaysTemplate)
+        UIGraphicsBeginImageContextWithOptions(size, false, scale)
+        color.set()
+        
+        image.draw(in: CGRect(origin: .zero, size: size))
+        image = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return image
     }
 }

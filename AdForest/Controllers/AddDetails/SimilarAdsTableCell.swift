@@ -55,6 +55,8 @@ class SimilarAdsTableCell: UITableViewCell , UICollectionViewDelegate, UICollect
         
         for images in objData.adImages {
             if let imgUrl = URL(string: images.thumb) {
+                cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }

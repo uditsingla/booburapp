@@ -9,6 +9,11 @@
 import UIKit
 import NVActivityIndicatorView
 import TextFieldEffects
+import UITextField_Shake
+
+protocol moveTomessagesDelegate {
+    func isMoveMessages(isMove: Bool)
+}
 
 class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
 
@@ -23,7 +28,13 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
     @IBOutlet weak var containerView: UIView!
     @IBOutlet weak var containerViewCall: UIView!
     @IBOutlet weak var containerViewTxtField: UIView!
-    @IBOutlet weak var txtComment: HoshiTextField!
+    @IBOutlet weak var txtComment: HoshiTextField! {
+        didSet {
+            if let mainColor = defaults.string(forKey: "mainColor"){
+                buttonCancel.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
     @IBOutlet weak var buttonCancel: UIButton!{
         didSet{
             if let mainColor = defaults.string(forKey: "mainColor"){
@@ -49,11 +60,12 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
     @IBOutlet weak var lblVerificationText: UILabel!
     
     //MARK:- Properties
-    
+    var delegate: moveTomessagesDelegate?
     var isFromReplyComment = false
     var isFromMsg = false
     var isFromCall = false
     var isFromAddDetailReply = false
+    var isFromUserRating = false
     var objAddDetail: AddDetailReplyDialogue?
     var objAddDetailData: AddDetailData?
     var objBlog : BlogDetailRoot?
@@ -70,22 +82,13 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
     override func viewDidLoad() {
         super.viewDidLoad()
         self.hideKeyboard()
+        self.googleAnalytics(controllerName: "Reply Comment Controller")
+        self.checkComingSide()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Reply Comment Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        self.checkComingSide()
-    }
-    
 
     //MARK: - Custom
     func showLoader(){
@@ -93,17 +96,14 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
     }
     
     func checkComingSide() {
-        
         if isFromReplyComment {
             containerViewCall.isHidden = true
             containerViewTxtField.isHidden = false
-            
             if objBlog != nil {
                 let objData = objBlog
                 if let postID = objData?.data.post.postId {
                     self.post_id = postID
                 }
-                
                 if let commentButtonText = objData?.extra.commentForm.btnSubmit {
                     self.buttonOK.setTitle(commentButtonText, for: .normal)
                 }
@@ -114,14 +114,13 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
                     self.txtComment.placeholder = txtPlaceHolder
                 }
             }
-        }
-        else if isFromMsg {
+        } else if isFromMsg {
             if objAddDetailData != nil {
                 let dataToShow = objAddDetailData
-               
+                
                 containerViewCall.isHidden = true
                 containerViewTxtField.isHidden = false
-               
+                
                 if let adId = dataToShow?.adDetail.adId {
                     self.ad_id = adId
                 }
@@ -136,46 +135,48 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
                     buttonCancel.setTitle(cancelText, for: .normal)
                 }
             }
-        }
-            
-        else if isFromCall {
+        } else if isFromCall {
             if objAddDetailData != nil {
                 let dataToShow = objAddDetailData
                 containerViewTxtField.isHidden = true
                 containerViewCall.isHidden = false
-                self.imgPic.image = #imageLiteral(resourceName: "Phone")
-                
+                self.imgPic.image = UIImage(named: "Phone")
                 if let buttonOkText = dataToShow?.callNowPopup.btnSend {
                     self.buttonOK.setTitle(buttonOkText, for: .normal)
                 }
                 if let buttonCancelText = dataToShow?.callNowPopup.btnCancel {
                     self.buttonCancel.setTitle(buttonCancelText, for: .normal)
                 }
-                
-                if (dataToShow?.callNowPopup.phoneVerification)! {
-                    if let number = dataToShow?.adDetail.phone {
-                        self.lblNumber.text = number
-                        self.phoneNumber = number
+                if let number = dataToShow?.adDetail.phone {
+                    self.lblNumber.text = number
+                    self.phoneNumber = number
+                }
+                if let text = dataToShow?.callNowPopup.isPhoneVerifiedText {
+                    self.lblVerificationText.text = text
+                }
+                //Local Variable
+                var isPhoneVerification = false
+                var isPhoneVerified = false
+                if let isVerification = dataToShow?.callNowPopup.phoneVerification {
+                    isPhoneVerification = isVerification
+                }
+                if isPhoneVerification {
+                    if let isPhone = dataToShow?.callNowPopup.isPhoneVerified{
+                        isPhoneVerified = isPhone
                     }
-                    if let text = dataToShow?.callNowPopup.isPhoneVerifiedText {
-                        self.lblVerificationText.text = text
-                    }
-                    
-                    if (dataToShow?.callNowPopup.isPhoneVerified)! {
-                         self.lblVerificationText.backgroundColor = Constants.hexStringToUIColor(hex: "#24a740")
+                    if isPhoneVerified {
+                        self.lblVerificationText.backgroundColor = Constants.hexStringToUIColor(hex: "#24a740")
                     }
                     else {
-                          self.lblVerificationText.backgroundColor = Constants.hexStringToUIColor(hex: "#F25E5E")
+                        self.lblVerificationText.backgroundColor = Constants.hexStringToUIColor(hex: "#F25E5E")
                     }
                 }
             }
-        }
-            
-        else if isFromAddDetailReply {
+        } else if isFromAddDetailReply {
             containerViewCall.isHidden = true
             containerViewTxtField.isHidden = false
             if objAddDetail != nil {
-            let dataToShow = objAddDetail
+                let dataToShow = objAddDetail
                 if let txtPlaceHolder = dataToShow?.text {
                     self.txtComment.placeholder = txtPlaceHolder
                 }
@@ -185,39 +186,58 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
                 if let cancelText = dataToShow?.cancelBtn {
                     self.buttonCancel.setTitle(cancelText, for: .normal)
                 }
-            }
-            else {
+            } else {
                 print("No Data")
+            }
+        } else if isFromUserRating {
+            containerViewCall.isHidden = true
+            containerViewTxtField.isHidden = false
+            if AddsHandler.sharedInstance.userRatingForm != nil {
+                let objData = AddsHandler.sharedInstance.userRatingForm
+                if let placeHolder = objData?.textareaText {
+                    txtComment.placeholder = placeHolder
+                }
+                if let settingsInfo = defaults.object(forKey: "settings") {
+                    let  settingObject = NSKeyedUnarchiver.unarchiveObject(with: settingsInfo as! Data) as! [String : Any]
+                    let model = SettingsRoot(fromDictionary: settingObject)
+                    
+                    if let okTitle = model.data.internetDialog.okBtn {
+                        buttonOK.setTitle(okTitle, for: .normal)
+                    }
+                    if let cancelTitle = model.data.internetDialog.cancelBtn {
+                        buttonCancel.setTitle(cancelTitle, for: .normal)
+                    }
+                }
             }
         }
     }
     
-    
+    //MARK:- IBActions
     @IBAction func actionBigButton(_ sender: UIButton) {
-        dismiss(animated: true, completion: nil)
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0, options: [], animations: {
+            self.view.transform = CGAffineTransform(scaleX: 0.2, y: 0.2)
+        }) { (success) in
+            self.dismissVC(completion: nil)
+        }
     }
     
     @IBAction func actionOK(_ sender: UIButton) {
-       
         guard let commentField = txtComment.text else {
             return
         }
-        
         if isFromMsg {
             if commentField == "" {
-                
+                self.txtComment.shake(6, withDelta: 10, speed: 0.06)
             }
             else  {
                 let param: [String: Any] = ["ad_id": ad_id, "message": commentField]
                 print(param)
                 self.adForest_popUpMessageReply(param: param as NSDictionary)
             }
-            
         }
-        
         else if isFromAddDetailReply {
             if commentField == "" {
-                
+                self.txtComment.shake(6, withDelta: 10, speed: 0.06)
             }
             else {
                 let param: [String: Any] = ["ad_id": ad_id, "comment_id": comment_id, "rating_comments": commentField]
@@ -226,25 +246,35 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
             }
         }
         else if isFromCall {
-            print("Call \(phoneNumber)")
             phoneNumber.makeAColl()
         }
         else if isFromReplyComment {
-            
             if commentField == "" {
-                
+                self.txtComment.shake(6, withDelta: 10, speed: 0.06)
             }
             else {
                 let param: [String: Any] = ["comment_id": comment_id, "post_id": post_id, "message": commentField]
                 print(param)
                 self.adForest_blogPostComment(param: param as NSDictionary)
             }
+        } else if isFromUserRating {
+            if commentField == "" {
+                self.txtComment.shake(6, withDelta: 10, speed: 0.06)
+            } else {
+                let param: [String: Any]  =  ["author_id": self.comment_id,"comments": commentField, "is_reply": true]
+                print(param)
+                self.adForest_rating(param: param as NSDictionary)
+            }
         }
     }
     
-    
     @IBAction func actionCancel(_ sender: UIButton) {
-          dismiss(animated: true, completion: nil)
+        //dismiss(animated: true, completion: nil)
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0, options: [], animations: {
+            self.view.transform = CGAffineTransform(scaleX: 0.2, y: 0.2)
+        }) { (success) in
+            self.dismissVC(completion: nil)
+        }
     }
     
     //MARK:- API Call
@@ -277,13 +307,13 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
         AddsHandler.popMsgReply(param: param, success: { (successResponse) in
             self.stopAnimating()
             if successResponse.success {
-               
                 let alert = AlertView.prepare(title: "", message: successResponse.message, okAction: {
-                    self.dismissVC(completion: nil)
+                    self.dismissVC(completion: {
+                        self.delegate?.isMoveMessages(isMove: true)
+                    })
                 })
                 self.presentVC(alert)
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -315,5 +345,27 @@ class ReplyCommentController: UIViewController , NVActivityIndicatorViewable{
             self.presentVC(alert)
         }
     }
+    
+    
+    func adForest_rating(param: NSDictionary) {
+        self.showLoader()
+        AddsHandler.postUserRating(param: param, success: { (successResponse) in
+            self.stopAnimating()
+            if successResponse.success {
+                let alert = AlertView.prepare(title: "", message: successResponse.message, okAction: {
+                    self.dismissVC(completion: nil)
+                })
+                self.presentVC(alert)
+            } else {
+                let alert = Constants.showBasicAlert(message: successResponse.message)
+                self.presentVC(alert)
+            }
+        }) { (error) in
+            self.stopAnimating()
+            let alert = Constants.showBasicAlert(message: error.message)
+            self.presentVC(alert)
+        }
+    }
+    
     
 }

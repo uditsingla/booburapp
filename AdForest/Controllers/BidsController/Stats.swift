@@ -32,7 +32,6 @@ class Stats: UIViewController, UITableViewDelegate, UITableViewDataSource, NVAct
     }
     //MARK:- Properties
     var dataArray = [TopBidders]()
-    
     var bidsData = AddsHandler.sharedInstance.objAdBids
     
     //MARK:- View Life Cycle
@@ -40,6 +39,7 @@ class Stats: UIViewController, UITableViewDelegate, UITableViewDataSource, NVAct
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.groupTableViewBackground
+        self.googleAnalytics(controllerName: "Stats Controller")
     }
 
     override func didReceiveMemoryWarning() {
@@ -49,12 +49,6 @@ class Stats: UIViewController, UITableViewDelegate, UITableViewDataSource, NVAct
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Stats Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        
         self.adForest_populatedata()
     }
     
@@ -77,7 +71,6 @@ class Stats: UIViewController, UITableViewDelegate, UITableViewDataSource, NVAct
             self.tableView.reloadData()
         }
     }
-    
   
     //MARK:- Table View Delegate Methods
     func numberOfSections(in tableView: UITableView) -> Int {

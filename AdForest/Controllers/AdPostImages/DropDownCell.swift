@@ -9,6 +9,10 @@
 import UIKit
 import DropDown
 
+protocol textSelectDropDown {
+    func textValSelecrDrop(value: String,indexPath: Int, fieldType:String, section: Int,fieldName:String)
+}
+
 class DropDownCell: UITableViewCell {
 
     //MARK:- Outlets
@@ -31,10 +35,15 @@ class DropDownCell: UITableViewCell {
     var selectedKey = ""
     var selectedValue = ""
     var param = ""
+    var index = 0
+    var section = 0
+    var delegate:textSelectDropDown?
+    var fieldNam = ""
+    var bidOnOfCell = 0
     
     var selectedIndex = 0
     var objSaved = AdPostField()
-    var delegate: AddDataDelegate?
+   // var delegate: AddDataDelegate?
     
     
     let valueDropDown = DropDown()
@@ -48,6 +57,7 @@ class DropDownCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
+       
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
@@ -68,10 +78,14 @@ class DropDownCell: UITableViewCell {
             self.selectedKey = self.dropDownKeysArray[index]
             self.param = self.fieldTypeNameArray[index]
             print(self.param, self.selectedKey)
+            self.bidOnOfCell = index
             self.objSaved.fieldVal = item
-            self.delegate?.addToFieldsArray(obj: self.objSaved, index: self.selectedIndex, isFrom: "select", title: item)
+            //self.delegate?.addToFieldsArray(obj: self.objSaved, index: self.selectedIndex, isFrom: "select", title: item)
             self.defaults.set(item, forKey: "value")
+            self.delegate?.textValSelecrDrop(value: self.selectedKey, indexPath: index, fieldType: "select", section: self.section,fieldName : self.fieldNam)
             self.defaults.synchronize()
+            print(self.fieldNam,self.bidOnOfCell)
+            
         }
     }
     

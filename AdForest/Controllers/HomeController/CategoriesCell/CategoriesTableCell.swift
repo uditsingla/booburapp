@@ -23,9 +23,27 @@ class CategoriesTableCell: UITableViewCell, UICollectionViewDelegate, UICollecti
     
     @IBOutlet weak var collectionView: UICollectionView! {
         didSet {
-            collectionView.isScrollEnabled = false
             collectionView.delegate = self
             collectionView.dataSource = self
+            if Constants.isiPadDevice {
+                collectionView.isScrollEnabled = true
+                collectionView.showsHorizontalScrollIndicator = false
+            }else {
+                 collectionView.isScrollEnabled = false
+            }
+            if Constants.isiPadDevice {
+                if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout{
+                    layout.scrollDirection = .horizontal
+                }
+            }
+        }
+    }
+    @IBOutlet weak var oltViewAll: UIButton! {
+        didSet{
+            oltViewAll.roundCornors(radius: 5)
+            if let mainColor = UserDefaults.standard.string(forKey: "mainColor") {
+                oltViewAll.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
         }
     }
     
@@ -33,12 +51,15 @@ class CategoriesTableCell: UITableViewCell, UICollectionViewDelegate, UICollecti
     //MARK:- Properties
     var categoryArray = [CatIcon]()
     var delegate : CategoryDetailDelegate?
+    var btnViewAll: (()->())?
+    
+    var numberOfColums: CGFloat = 0
+    
     
     //MARK:- View Life Cycle
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
-
     }
 
     //MARK:- Collection View Delegate Methods
@@ -53,9 +74,8 @@ class CategoriesTableCell: UITableViewCell, UICollectionViewDelegate, UICollecti
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: CategoriesCollectionCell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoriesCollectionCell", for: indexPath) as! CategoriesCollectionCell
-        
         let objData = categoryArray[indexPath.row]
-        
+    
         if let name = objData.name {
             cell.lblName.text = name
         }
@@ -64,43 +84,57 @@ class CategoriesTableCell: UITableViewCell, UICollectionViewDelegate, UICollecti
             cell.imgPicture.sd_setIndicatorStyle(.gray)
             cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
         }
-        
+        cell.btnFullAction = { () in
+            self.delegate?.goToCategoryDetail(id: objData.catId)
+        }
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        self.delegate?.goToCategoryDetail(id: categoryArray[indexPath.row].catId)
-    }
-    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
-        if Constants.isiPadDevice {
-            let padding: CGFloat =  50
-            let collectionViewSize = collectionView.frame.size.width - padding
-            return CGSize(width: collectionViewSize/4, height: collectionViewSize/4)
-         
+        if numberOfColums == 3 {
+            if Constants.isiPadDevice {
+                return CGSize(width: self.frame.width / 5 - 5, height: 170)
+            }
+            else if Constants.isIphonePlus {
+                let itemWidth = CollectionViewSettings.getItemWidth(boundWidth: collectionView.bounds.size.width)
+                return CGSize(width: itemWidth - 10, height: itemWidth)
+            }
+            else {
+                let itemWidth = CollectionViewSettings.getItemWidth(boundWidth: collectionView.bounds.size.width)
+                return CGSize(width: itemWidth, height: itemWidth + 10)
+            }
+        } else {
+            if Constants.isiPadDevice {
+                return CGSize(width: self.frame.width / 5 - 5, height: 170)
+            } else if Constants.isiPhone5 {
+                let itemWidth = CollectionViewForuCell.getItemWidth(boundWidth: collectionView.bounds.size.width)
+                return CGSize(width: itemWidth, height: itemWidth + 40)
+            }
+            else if Constants.isIphonePlus {
+                let itemWidth = CollectionViewForuCell.getItemWidth(boundWidth: collectionView.bounds.size.width)
+                return CGSize(width: itemWidth, height: itemWidth + 30)
+            }
+            else {
+                let itemWidth = CollectionViewForuCell.getItemWidth(boundWidth: collectionView.bounds.size.width)
+                return CGSize(width: itemWidth, height: itemWidth + 30)
+            }
         }
-        else {
-            let itemWidth = CollectionViewSettings.getItemWidth(boundWidth: collectionView.bounds.size.width)
-            return CGSize(width: itemWidth, height: itemWidth + 10)
-        }
-        
     }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 8
+  
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if collectionView.isDragging {
-            cell.transform = CGAffineTransform.init(scaleX: 0.5, y: 0.5)
-            UIView.animate(withDuration: 0.3, animations: {
-                cell.transform = CGAffineTransform.identity
-            })
-        }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    //MARK:- IBActions
+    @IBAction func actionViewAll(_ sender: Any) {
+        self.btnViewAll?()
     }
 }

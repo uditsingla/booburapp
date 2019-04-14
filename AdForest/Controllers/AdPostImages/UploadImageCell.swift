@@ -17,7 +17,7 @@ class UploadImageCell: UITableViewCell {
         }
     }
     @IBOutlet weak var containerViewActivity: UIView! {
-        didSet{
+        didSet {
             containerViewActivity.layer.borderWidth = 0.5
             containerViewActivity.layer.borderColor = UIColor.lightGray.cgColor
         }

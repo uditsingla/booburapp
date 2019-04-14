@@ -54,13 +54,13 @@ class AddsTableCell: UITableViewCell, UICollectionViewDelegate, UICollectionView
 
     }
     
+    
     //MARK:- Custom
     
     func reloadData() {
         collectionView.reloadData()
     }
-    
-
+   
     //MARK:- Collection View Delegate Methods
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -72,6 +72,8 @@ class AddsTableCell: UITableViewCell, UICollectionViewDelegate, UICollectionView
         let objData = dataArray[indexPath.row]
         for images in objData.adImages {
             if let imgUrl = URL(string: images.thumb) {
+                cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
@@ -85,25 +87,25 @@ class AddsTableCell: UITableViewCell, UICollectionViewDelegate, UICollectionView
         if let price = objData.adPrice.price {
             cell.lblPrice.text = price
         }
+        cell.btnFullAction = { () in
+            self.delegate?.goToAddDetail(ad_id: objData.adId)
+        }
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let objData = dataArray[indexPath.row]
-        self.delegate?.goToAddDetail(ad_id: objData.adId)
-    }
-    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
         return CGSize(width: 140, height: 210)
     }
     
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 4
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
@@ -114,8 +116,8 @@ class AddsTableCell: UITableViewCell, UICollectionViewDelegate, UICollectionView
                 cell.transform = CGAffineTransform.identity
             })
         }
-        
     }
+    
     
     //MARK:- IBActions
     

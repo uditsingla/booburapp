@@ -39,16 +39,14 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
     @IBOutlet weak var containerViewAddLabel: UIView!
     @IBOutlet weak var lblSoldAds: UILabel!
     @IBOutlet weak var lblAllAds: UILabel!
-    
     @IBOutlet weak var ratingBar: CosmosView!
-    @IBOutlet weak var lblLikes: UILabel!
     @IBOutlet weak var lblInactiveAds: UILabel!
     
     @IBOutlet weak var collectionView: UICollectionView! {
         didSet {
             collectionView.delegate = self
             collectionView.dataSource = self
-            collectionView.showsVerticalScrollIndicator = false
+            collectionView.addSubview(refreshControl)
         }
     }
     
@@ -70,41 +68,46 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
     //MARK:- Properties
     var dataArray = [MyAdsAd]()
     var noAddTitle = ""
-    var defaults = UserDefaults.standard
+    let defaults = UserDefaults.standard
+    var currentPage = 0
+    var maximumPage = 0
+    lazy var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action:
+            #selector(refreshTableView),
+                                 for: UIControlEvents.valueChanged)
+        refreshControl.tintColor = UIColor.red
+        
+        return refreshControl
+    }()
+    
     
     //MARK:- View Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        if defaults.bool(forKey: "isRtl") {
-            self.addRightBarButtonWithImage(#imageLiteral(resourceName: "menu"))
+        self.addLeftBarButtonWithImage(UIImage(named: "menu")!)
+        self.adMob()
+        self.adForest_featuredAdsData()
+        self.googleAnalytics(controllerName: "Featured Ads Controller")
+        if defaults.bool(forKey: "isGuest") {
+            self.oltAdPost.isHidden = true
         }
-        else {
-            self.addLeftBarButtonWithImage(#imageLiteral(resourceName: "menu"))
-        }
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
+        self.adForest_featuredAdsData()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Featured Ads Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        
-          self.adForest_featuredAdsData()
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+//        if AddsHandler.sharedInstance.objMyAds == nil{
+//            self.adForest_featuredAdsData()
+//        }
     }
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-   // scrollBar.contentSize = CGSize(width: self.view.frame.size.width, height: 800)
-    }
-    
     //MARK: - Custom
+    
+    @objc func refreshTableView() {
+        adForest_featuredAdsData()
+    }
+    
     func showLoader() {
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
@@ -112,13 +115,12 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
     func adForest_populateData() {
         if AddsHandler.sharedInstance.objMyAds != nil {
             let objData = AddsHandler.sharedInstance.objMyAds
-            
             self.title = objData?.pageTitle
             
             if let imgUrl = URL(string: (objData?.profile.profileImg)!) {
-                self.imgPicture.sd_setImage(with: imgUrl, completed: nil)
                 self.imgPicture.sd_setIndicatorStyle(.gray)
                 self.imgPicture.sd_setShowActivityIndicatorView(true)
+                self.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
             if let userName = objData?.profile.displayName {
                 self.lblName.text = userName
@@ -139,11 +141,11 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
             if let rateBar = objData?.profile.rateBar.number {
                 self.ratingBar.settings.updateOnTouch = false
                 self.ratingBar.settings.fillMode = .precise
-                self.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: "#ffcc00")
+                self.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: Constants.AppColor.ratingColor)
                 self.ratingBar.rating = Double(rateBar)!
             }
             if let avgRating = objData?.profile.rateBar.text {
-                self.lblLikes.text = avgRating
+                ratingBar.text = avgRating
             }
             
             if let soldAds = objData?.profile.adsSold {
@@ -160,6 +162,45 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         }
     }
     
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    
+                    if objData?.position == "top" {
+                        self.containerViewProfile.translatesAutoresizingMaskIntoConstraints = false
+                        self.containerViewProfile.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                    }
+                    else {
+                        self.collectionView.translatesAutoresizingMaskIntoConstraints = false
+                        self.collectionView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: 70).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
+    }
+
     //MARK:- Collection View Delegate Methods
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -183,9 +224,9 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         
         for images in objData.adImages {
             if let imgUrl = URL(string: images.thumb) {
-                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
+                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
         
@@ -196,34 +237,11 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
             cell.lblPrice.text = price
         }
         
-        if let mainColor = defaults.string(forKey: "mainColor") {
-            cell.lblPrice.textColor = Constants.hexStringToUIColor(hex: mainColor)
-        }
-        
         if let featuredTypeText = objData.adStatus.featuredTypeText {
             cell.lblAddType.text = featuredTypeText
-            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: "#d9534f")
+            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.featureAdd)
         }
-        
         return cell
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
-        if Constants.isiPhone5 {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 230 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isIphoneX {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 160 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isIphone6 {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 190 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isiPadDevice {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 200)
-        }
-        return CGSize(width: 139 * (self.view.frame.size.width/295), height: 190 * (self.view.frame.size.height/568))
-        
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -240,25 +258,31 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
                 cell.transform = CGAffineTransform.identity
             })
         }
-        
-        let objData = AddsHandler.sharedInstance.objMyAds
-        var currentPage = objData?.pagination.currentPage as! Int
-        let maximumPage = objData?.pagination.maxNumPages as! Int
-        
         if indexPath.row == dataArray.count - 1 && currentPage < maximumPage {
             currentPage = currentPage + 1
             let param: [String: Any] = ["page_number": currentPage]
             self.adForest_loadMoreData(param: param as NSDictionary)
-            
         }        
     }
     
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if Constants.isiPadDevice {
+            let width = collectionView.bounds.width/3.0
+            return CGSize(width: width, height: 200)
+        }
+        let width = collectionView.bounds.width/2.0
+        return CGSize(width: width, height: 200)
+    }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 8
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
@@ -280,8 +304,11 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         self.showLoader()
         AddsHandler.featuredAds(success: { (successResponse) in
             self.stopAnimating()
+            self.refreshControl.endRefreshing()
             if successResponse.success {
                 self.noAddTitle = successResponse.message
+                self.currentPage = successResponse.data.pagination.currentPage
+                self.maximumPage = successResponse.data.pagination.maxNumPages
                 AddsHandler.sharedInstance.objMyAds = successResponse.data
                 self.dataArray = successResponse.data.ads
                 self.adForest_populateData()
@@ -303,6 +330,7 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         self.showLoader()
         AddsHandler.moreFeaturedAdsData(param: param, success: { (successResponse) in
             self.stopAnimating()
+            self.refreshControl.endRefreshing()
             if successResponse.success {
                 AddsHandler.sharedInstance.objMyAds = successResponse.data
                 self.dataArray.append(contentsOf: successResponse.data.ads)
@@ -321,19 +349,4 @@ class FeaturedAdsController: UIViewController, UIScrollViewDelegate, UICollectio
     }
 }
 
-class FeaturedAddsCell : UICollectionViewCell {
-    @IBOutlet weak var containerView: UIView! {
-        didSet {
-            containerView.addShadowToView()
-        }
-    }
-    
-    @IBOutlet weak var imgPicture: UIImageView!
-    
-    @IBOutlet weak var lblAddType: UILabel!
-    
-    @IBOutlet weak var lblName: UILabel!
-    @IBOutlet weak var lblPrice: UILabel!
-    
-    
-}
+

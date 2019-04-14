@@ -7,43 +7,189 @@
 //
 
 import UIKit
+import NVActivityIndicatorView
 
-class RatingReviewsController: UIViewController {
+class RatingReviewsController: UIViewController, UITableViewDelegate, UITableViewDataSource, NVActivityIndicatorViewable {
 
-    
-    @IBOutlet weak var scrollBar: UIScrollView!
+    //MARK:- Outlets
     @IBOutlet weak var imgContainer: UIView! {
         didSet {
             imgContainer.circularView()
         }
     }
+    @IBOutlet weak var tableView: UITableView! {
+        didSet{
+            tableView.delegate = self
+            tableView.dataSource = self
+            tableView.tableFooterView = UIView()
+            tableView.separatorStyle = .none
+            tableView.register(UINib(nibName: "ReplyCell", bundle: nil), forCellReuseIdentifier: "ReplyCell")
+            tableView.register(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
+        }
+    }
+    @IBOutlet weak var oltLoadMore: UIButton!{
+        didSet{
+            if let mainColor = UserDefaults.standard.string(forKey: "mainColor") {
+                oltLoadMore.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
+    @IBOutlet weak var lblTitle: UILabel!
+    @IBOutlet weak var imgRating: UIImageView!
     
-    @IBOutlet weak var imgPicture: UIView!
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var oltLoadMore: UIButton!
+    //MARK:- Properties
+    var addRatingArray = [AddDetailRating]()
+    var addReplyArray = [AddDetailReply]()
+    var adID = 0
+    var hasNextPage = false
+    var nextPage = 0
     
     
+    //MARK:- View Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-       
+        self.showBackButton()
+        self.googleAnalytics(controllerName: "Rating Reviews Controller")
+        self.populateData()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Rating Reviews Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
+    //MARK: - Custom
+    func showLoader() {
+        self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
+    }
+   
+    func populateData() {
+        if  AddsHandler.sharedInstance.ratingsAdds != nil {
+            let objData =  AddsHandler.sharedInstance.ratingsAdds
+            
+            if let title = objData?.sectionTitle {
+                self.title = title
+                lblTitle.text = title
+            }
+            if let loadMoreButton = objData?.loadmoreBtn {
+                oltLoadMore.setTitle(loadMoreButton, for: .normal)
+            }
+            if let ratingArray = objData?.ratings {
+                 self.addRatingArray = ratingArray
+            }
+            for item in addRatingArray {
+                if item.hasReply {
+                    self.addReplyArray = item.reply
+                }
+            }
+            if let hasNextPage = objData?.pagination.hasNextPage {
+                self.hasNextPage = hasNextPage
+            }
+            if let nextPage = objData?.pagination.nextPage {
+                self.nextPage = nextPage
+            }
+            self.tableView.reloadData()
+        }
     }
     
-    @IBAction func actionLoadMore(_ sender: Any) {
+    //MARK:- Table View Delegate Methods
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 2
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if section == 0 {
+            return addRatingArray.count
+        }
+        return addReplyArray.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let section = indexPath.section
         
+        switch section {
+        case 0 :
+            let cell: ReplyCell = tableView.dequeueReusableCell(withIdentifier: "ReplyCell", for: indexPath) as! ReplyCell
+            let objData = addRatingArray[indexPath.row]
+            cell.oltReply.isHidden = true
+            
+            if let imgUrl = URL(string: objData.ratingAuthorImage) {
+                cell.imgProfile.sd_setIndicatorStyle(.gray)
+                cell.imgProfile.sd_setShowActivityIndicatorView(true)
+                cell.imgProfile.sd_setImage(with: imgUrl, completed: nil)
+            }
+            if let name = objData.ratingAuthorName {
+                cell.lblName.text = name
+            }
+            if let replyText = objData.ratingText {
+                cell.lblReply.text = replyText
+            }
+            if let date = objData.ratingDate {
+                cell.lblDate.text = date
+            }
+            if let ratingBar = objData.ratingStars {
+                cell.ratingBar.settings.updateOnTouch = false
+                cell.ratingBar.settings.fillMode = .precise
+                cell.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: "#ffcc00")
+                cell.ratingBar.rating = Double(ratingBar)!
+            }
+            if let replyButtontext = objData.replyText {
+                cell.oltReply.setTitle(replyButtontext, for: .normal)
+            }
+            return cell
+        case 1:
+            let cell : CommentCell = tableView.dequeueReusableCell(withIdentifier: "CommentCell", for: indexPath) as! CommentCell
+            let objData = addReplyArray[indexPath.row]
+            
+            if let imgUrl = URL(string: objData.ratingAuthorImage) {
+                cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
+                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
+            }
+            if let name = objData.ratingAuthorName {
+                cell.lblName.text = name
+            }
+            if let date = objData.ratingDate {
+                cell.lblDate.text = date
+            }
+            if let replyText = objData.ratingText {
+                cell.lblReply.text = replyText
+            }
+            return cell
+        default:
+            break
+        }
+        return UITableViewCell()
     }
+  
+    //MARK:- IBActions
+    @IBAction func actionLoadMore(_ sender: Any) {
+        if self.hasNextPage {
+            let param: [String: Any] = ["ad_id": 5799, "page_number": nextPage]
+            print(param)
+            self.adForest_loadMoreData(param: param as NSDictionary)
+        }
+    }
+ 
+    //MARK:- API Call
+    func adForest_loadMoreData(param: NSDictionary) {
+        self.showLoader()
+        AddsHandler.addDetailRating(parameter: param, success: { (successResponse) in
+            self.stopAnimating()
+            if successResponse.success {
+                self.hasNextPage = successResponse.data.pagination.hasNextPage
+                self.nextPage = successResponse.data.pagination.nextPage
+                if self.hasNextPage == false {
+                    self.oltLoadMore.isHidden = true
+                }
+                self.addRatingArray.append(contentsOf: successResponse.data.ratings)
+                self.tableView.reloadData()
+            } else {
+                let alert = Constants.showBasicAlert(message: successResponse.message)
+                self.presentVC(alert)
+            }
+        }) { (error) in
+            self.stopAnimating()
+            let alert = Constants.showBasicAlert(message: error.message)
+            self.presentVC(alert)
+        }
+    }
+    
+    
     
 }

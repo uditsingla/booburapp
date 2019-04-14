@@ -27,14 +27,19 @@ struct SettingsMenu {
     var register : String!
     var search : String!
     var submenu : SettingsSubMenu!
-    var mapList : String!
     
+    var shop : String!
+    var sellers : String!
+    var dynamicMenu : SettingsDynamicMenu!
+
+    var appSettings : String!
+
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
      */
     init(fromDictionary dictionary: [String:Any]){
-        mapList = dictionary["mapList"] as? String
+        
         blog = dictionary["blog"] as? String
         favAds = dictionary["fav_ads"] as? String
         featuredAds = dictionary["featured_ads"] as? String
@@ -56,6 +61,13 @@ struct SettingsMenu {
         if let submenuData = dictionary["submenu"] as? [String:Any]{
             submenu = SettingsSubMenu(fromDictionary: submenuData)
         }
+        sellers = dictionary["Sellers"] as? String
+        shop = dictionary["shop"] as? String
+        
+        if let dynamicMenuData = dictionary["dynamic_menu"] as? [String:Any]{
+            dynamicMenu = SettingsDynamicMenu(fromDictionary: dynamicMenuData)
+        }
+        appSettings = dictionary["app_settings"] as? String
     }
     
     /**
@@ -75,9 +87,6 @@ struct SettingsMenu {
         }
         if home != nil{
             dictionary["home"] = home
-        }
-        if mapList != nil{
-            dictionary["mapList"] = mapList
         }
         if inactiveAds != nil{
             dictionary["inactive_ads"] = inactiveAds
@@ -118,7 +127,18 @@ struct SettingsMenu {
         if submenu != nil{
             dictionary["submenu"] = submenu.toDictionary()
         }
+        if sellers != nil{
+            dictionary["Sellers"] = sellers
+        }
+        if shop != nil{
+            dictionary["shop"] = shop
+        }
+        if dynamicMenu != nil{
+            dictionary["dynamic_menu"] = dynamicMenu.toDictionary()
+        }
+        if appSettings != nil{
+            dictionary["app_settings"] = appSettings
+        }
         return dictionary
     }
-    
 }

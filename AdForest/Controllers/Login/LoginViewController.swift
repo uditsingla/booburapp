@@ -12,8 +12,9 @@ import FBSDKLoginKit
 import GoogleSignIn
 import NVActivityIndicatorView
 import SDWebImage
+import UITextField_Shake
 
-class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndicatorViewable, GIDSignInUIDelegate, GIDSignInDelegate , UIScrollViewDelegate{
+class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndicatorViewable, GIDSignInUIDelegate, GIDSignInDelegate, UIScrollViewDelegate{
     
     //MARK:- Outlets
     @IBOutlet weak var scrollView: UIScrollView! {
@@ -22,8 +23,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
         }
     }
     @IBOutlet weak var containerViewImage: UIView!
-    
-    
     @IBOutlet weak var imgTitle: UIImageView!
     @IBOutlet weak var lblWelcome: UILabel!
     @IBOutlet weak var imgEmail: UIImageView!
@@ -38,7 +37,11 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
             txtPassword.delegate = self
         }
     }
-    @IBOutlet weak var buttonForgotPassword: UIButton!
+    @IBOutlet weak var buttonForgotPassword: UIButton!{
+        didSet{
+            buttonForgotPassword.contentHorizontalAlignment = .right
+        }
+    }
     @IBOutlet weak var buttonSubmit: UIButton! {
         didSet {
             buttonSubmit.roundCorners()
@@ -73,10 +76,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
             buttonRegisterWithUs.layer.borderColor = UIColor.lightGray.cgColor
         }
     }
-    
+
     @IBOutlet weak var viewRegisterWithUs: UIView!
     @IBOutlet weak var containerViewSocialButton: UIView!
-    
     
     
     //MARK:- Properties
@@ -91,12 +93,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
         GIDSignIn.sharedInstance().uiDelegate = self
         GIDSignIn.sharedInstance().delegate = self
         self.adForest_loginDetails()
+        txtFieldsWithRtl()
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.navigationController?.isNavigationBarHidden = true
-        
         defaults.removeObject(forKey: "isGuest")
         defaults.synchronize()
     }
@@ -120,10 +123,20 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
     }
     
     //MARK: - Custom
-    func showLoader(){
-        self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
+    
+    func txtFieldsWithRtl(){
+        if UserDefaults.standard.bool(forKey: "isRtl") {
+            txtEmail.textAlignment = .right
+            txtPassword.textAlignment = .right
+        } else {
+            txtEmail.textAlignment = .left
+            txtPassword.textAlignment = .left
+        }
     }
     
+    func showLoader() {
+        self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
+    }
     
     func adForest_populateData() {
         if UserHandler.sharedInstance.objLoginDetails != nil {
@@ -142,9 +155,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
             }
             
             if let imgUrl = URL(string: (objData?.logo)!) {
-                imgTitle.sd_setImage(with: imgUrl, completed: nil)
                 imgTitle.sd_setShowActivityIndicatorView(true)
                 imgTitle.sd_setIndicatorStyle(.gray)
+                imgTitle.sd_setImage(with: imgUrl, completed: nil)
             }
             
             if let welcomeText = objData?.heading {
@@ -245,11 +258,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
                     if let guestText = objData?.guestLogin {
                         self.buttonGuestLogin.setTitle(guestText, for: .normal)
                     }
-                }
-                else {
+                } else {
                     self.buttonGuestLogin.isHidden = true
                 }
-                
             }
         }
     }
@@ -260,7 +271,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
         let forgotPassVC = self.storyboard?.instantiateViewController(withIdentifier: "ForgotPasswordViewController") as! ForgotPasswordViewController
         self.navigationController?.pushViewController(forgotPassVC, animated: true)
     }
-    
     
     @IBAction func actionSubmit(_ sender: Any) {
         self.adForest_logIn()
@@ -274,16 +284,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
             return
         }
         if email == "" {
-            let alert = Constants.showBasicAlert(message: "Enter Valid Email")
-            self.presentVC(alert)
+            self.txtEmail.shake(6, withDelta: 10, speed: 0.06)
         }
         else if !email.isValidEmail {
-            let alert = Constants.showBasicAlert(message: "Enter Valid Email")
-            self.presentVC(alert)
+            self.txtEmail.shake(6, withDelta: 10, speed: 0.06)
         }
         else if password == "" {
-            let alert = Constants.showBasicAlert(message: "Enter Valid Password")
-            self.presentVC(alert)
+             self.txtPassword.shake(6, withDelta: 10, speed: 0.06)
         }
         else {
             let param : [String : Any] = [
@@ -423,12 +430,10 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
             if successResponse.success {
                 UserHandler.sharedInstance.objLoginDetails = successResponse.data
                 self.adForest_populateData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
-            
         }) { (error) in
             self.stopAnimating()
             let alert = Constants.showBasicAlert(message: error.message)
@@ -441,7 +446,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
         self.showLoader()
         UserHandler.loginUser(parameter: parameters , success: { (successResponse) in
             self.stopAnimating()
-            if successResponse.success{
+            if successResponse.success {
                 if self.isVerifyOn && successResponse.data.isAccountConfirm == false {
                     let alert = AlertView.prepare(title: "", message: successResponse.message, okAction: {
                         let confirmationVC = self.storyboard?.instantiateViewController(withIdentifier: "ForgotPasswordViewController") as! ForgotPasswordViewController
@@ -449,15 +454,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate, NVActivityIndi
                         confirmationVC.user_id = successResponse.data.id
                         self.navigationController?.pushViewController(confirmationVC, animated: true)
                     })
-                   self.presentVC(alert)
-                }
-                else {
+                    self.presentVC(alert)
+                } else {
                     self.defaults.set(true, forKey: "isLogin")
                     self.defaults.synchronize()
                     self.appDelegate.moveToHome()
                 }
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }

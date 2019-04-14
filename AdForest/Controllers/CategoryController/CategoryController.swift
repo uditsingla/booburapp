@@ -11,8 +11,8 @@ import NVActivityIndicatorView
 import DropDown
 import Firebase
 
-class CategoryController: UIViewController, UITableViewDelegate, UITableViewDataSource, NVActivityIndicatorViewable, CategoryFeatureDelegate {
-
+class CategoryController: UIViewController, UITableViewDelegate, UITableViewDataSource, NVActivityIndicatorViewable, CategoryFeatureDelegate, CustomHeaderParameterDelegate {
+  
     //MARK:- Outlets
     @IBOutlet weak var tableView: UITableView! {
         didSet {
@@ -36,22 +36,15 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
     
     var featureAddTitle = ""
     var addcategoryTitle = ""
-    
-    let headerDropDownButton = UIButton(type: .custom)
-   
-    var arrangeDropDown = DropDown()
-    lazy var dropDown : [DropDown] = {
-        return [
-            self.arrangeDropDown
-        ]
-    }()
-    
+    let defaults = UserDefaults.standard
     var orderArray = [String]()
+    var orderKeysArray = [String]()
     var orderName = ""
     
     var isFromAdvanceSearch = false
     var isFromNearBySearch = false
-    
+    var isFromTextSearch = false
+    var searchText = ""
     
     var latitude: Double = 0.0
     var longitude: Double = 0.0
@@ -61,42 +54,32 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
     override func viewDidLoad() {
         super.viewDidLoad()
         self.showBackButton()
-        //self.showLocationButton()
-        // set google analytics
-        Analytics.logEvent("Home_Screen", parameters: nil)
-        
-        self.title = "Search Results"
+        self.googleAnalytics(controllerName: "Category Controller")
+        self.adMob()
     }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Category Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         if isFromAdvanceSearch {
             self.dataArray = AddsHandler.sharedInstance.objCategoryArray
             self.categotyAdArray = AddsHandler.sharedInstance.objCategotyAdArray
             self.tableView.reloadData()
-        }
-        else if isFromNearBySearch {
+        } else if isFromNearBySearch {
+            let param: [String: Any] = ["nearby_latitude": latitude, "nearby_longitude": longitude, "nearby_distance": nearByDistance, "page_number": 1]
+            print(param)
+            self.adForest_categoryData(param: param as NSDictionary)
+        } else if isFromTextSearch {
+            let param: [String: Any] = ["ad_title": searchText , "page_number": 1]
+            print(param)
+            self.adForest_categoryData(param: param as NSDictionary)
+        } else if isFromLocation {
+            let param: [String: Any] = ["ad_country" : categoryID]
+            print(param)
+            self.adForest_categoryData(param: param as NSDictionary)
+        } else {
             let param: [String: Any] = ["ad_cats1" : categoryID, "page_number": 1]
             print(param)
             self.adForest_categoryData(param: param as NSDictionary)
-        }
-        
-        else {
-            if isFromLocation {
-                let param: [String: Any] = ["ad_country" : categoryID]
-                print(param)
-                self.adForest_categoryData(param: param as NSDictionary)
-            }
-            else {
-                let param: [String: Any] = ["ad_cats1" : categoryID, "page_number": 1]
-                print(param)
-                self.adForest_categoryData(param: param as NSDictionary)
-            }
         }
     }
     
@@ -105,16 +88,47 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
     
-    func orderDropDown() {
-        arrangeDropDown.anchorView = headerDropDownButton
-        arrangeDropDown.dataSource = orderArray
-        arrangeDropDown.selectionAction = { [unowned self] (index, item) in
-            self.headerDropDownButton.setTitle(item, for: .normal)
-            print("\(index, item)")
-            let param: [String: Any] = ["ad_cats1" : self.categoryID, "page_number": 1, "sort": item.lowercased()]
-            print(param)
-            self.adForest_categoryData(param: param as NSDictionary)
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    self.tableView.translatesAutoresizingMaskIntoConstraints = false
+                    if objData?.position == "top" {
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                        self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 50).isActive = true
+                    }
+                    else {
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                        self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: 50).isActive = true
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
         }
+    }
+    
+    func paramData(param: NSDictionary) {
+        self.adForest_categoryData(param: param)
     }
     
     func goToDetailController(id: Int) {
@@ -122,31 +136,6 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
         addDetailVC.ad_id = id
         self.navigationController?.pushViewController(addDetailVC, animated: true)
     }
-    
-//    func showLocationButton() {
-//        let button = UIButton(type: .custom)
-//        let origImage = UIImage(named: "location")
-//        let tintedImage = origImage?.withRenderingMode(.alwaysTemplate)
-//        button.setImage(tintedImage, for: .normal)
-//        button.tintColor = .white
-//
-//        if #available(iOS 11, *) {
-//            button.widthAnchor.constraint(equalToConstant: 20).isActive = true
-//            button.heightAnchor.constraint(equalToConstant: 20).isActive = true
-//        }
-//        else {
-//            button.frame = CGRect(x: 0, y: 0, width: 20, height: 20)
-//        }
-//        button.addTarget(self, action: #selector(onClickMapButton), for: .touchUpInside)
-//
-//        let barButton = UIBarButtonItem(customView: button)
-//        navigationItem.rightBarButtonItem = barButton
-//    }
-    
-//    @objc func onClickMapButton() {
-//            let markerOnMaps = self.storyboard?.instantiateViewController(withIdentifier: "MarkersOnMapController") as! MarkersOnMapController
-//            self.navigationController?.pushViewController(markerOnMaps, animated: true)
-//    }
     
     //MARK:- Table View Delegate methods
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -163,15 +152,14 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let section = indexPath.section
         
-        if section == 0 {
+        switch section {
+        case 0:
             let cell: CategoryFeatureCell =  tableView.dequeueReusableCell(withIdentifier: "CategoryFeatureCell", for: indexPath) as! CategoryFeatureCell
-            
             cell.dataArray = self.categotyAdArray
             cell.delegate = self
             cell.reloadData()
             return cell
-        }
-        else if section == 1 {
+        case 1:
             let cell: CategoryCell =  tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! CategoryCell
             let objData = dataArray[indexPath.row]
             
@@ -195,8 +183,9 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
             if let catName = objData.adCatsName {
                 cell.lblPath.text = catName
             }
-            
             return cell
+        default:
+            break
         }
         return UITableViewCell()
     }
@@ -210,7 +199,6 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
         }
     }
     
-    
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if tableView.isDragging {
             cell.transform = CGAffineTransform.init(scaleX: 0.5, y: 0.5)
@@ -218,7 +206,6 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
                 cell.transform = CGAffineTransform.identity
             })
         }
-        
         if indexPath.row == dataArray.count - 1 && currentPage < maximumPage {
             currentPage = currentPage + 1
             let param: [String: Any] = ["ad_cats1" : categoryID, "page_number": currentPage]
@@ -228,75 +215,67 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        
         let section = indexPath.section
-        var height: CGFloat = 0.0
-        
-        if section == 0 {
+        switch section {
+        case 0:
             if AddsHandler.sharedInstance.isShowFeatureOnCategory {
-                height = 240
-            }
-            else if isFromAdvanceSearch {
+                return 240
+            } else if isFromAdvanceSearch {
                 if AddsHandler.sharedInstance.objCategotyAdArray.count == 0 {
-                    height = 0
+                    return 0
+                } else {
+                    return 240
                 }
-                else {
-                    height = 240
-                }
+            } else {
+                return 0
             }
-            else {
-                height = 0
-            }
+        case 1:
+            return 110
+        default:
+            return 0
         }
-        else if section == 1 {
-            height = 110
-        }
-        return height
     }
     
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        switch section {
+        case 0:
+            if AddsHandler.sharedInstance.isShowFeatureOnCategory {
+                return 50
+            } else {
+                return 0
+            }
+        case 1:
+            return 50
+        default:
+            return 0
+        }
+    }
+
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width , height: 30))
-        headerView.backgroundColor = UIColor.groupTableViewBackground
-       
-        if section == 0 {
-                let titleLabel = UILabel(frame: CGRect(x: 20, y: 4, width: self.view.frame.size.width - 20 , height: 20))
-                titleLabel.text = self.featureAddTitle
-                titleLabel.font = UIFont.systemFont(ofSize: 15)
-                titleLabel.textAlignment = .left
-                titleLabel.backgroundColor = UIColor.groupTableViewBackground
-                headerView.addSubview(titleLabel)
-                return headerView
-        }
-        else {
-            //titile label
-            let titleLabel = UILabel(frame: CGRect(x: 20, y: 5, width: 150 , height: 20))
-            titleLabel.text = self.addcategoryTitle
-            titleLabel.font = UIFont.systemFont(ofSize: 15)
-            titleLabel.textAlignment = .left
-            titleLabel.backgroundColor = UIColor.groupTableViewBackground
-        
-            // image view
-            let imgView = UIImageView(frame: CGRect(x: self.view.frame.width - 20, y: 8, width: 15, height: 15))
-            imgView.image = #imageLiteral(resourceName: "arrowDown")
-            imgView.contentMode = .scaleAspectFill
-            
-            //pop up button
-            headerDropDownButton.frame = CGRect(x: self.view.frame.size.width - 160 , y: 0, width: 150, height: 30)
-            headerDropDownButton.backgroundColor = UIColor.groupTableViewBackground
-            headerDropDownButton.setTitle(orderName, for: .normal)
-            headerDropDownButton.setTitleColor(UIColor.black, for: .normal)
-            headerDropDownButton.addTarget(self, action: #selector(onClickHeaderButton), for: .touchUpInside)
-            headerView.addSubview(headerDropDownButton)
-            headerView.addSubview(titleLabel)
-            headerView.addSubview(imgView)
+        let headerView = Bundle.main.loadNibNamed("CustomHeader", owner: self, options: nil)?.first as! CustomHeader
+        switch section {
+        case 0:
+            headerView.imgIcon.isHidden = true
+            headerView.oltOrder.isHidden = true
+            headerView.lblTotalAds.text = self.featureAddTitle
             return headerView
+        case 1:
+            headerView.lblTotalAds.text = self.addcategoryTitle
+            headerView.oltOrder.setTitle(orderName, for: .normal)
+            headerView.btnSort = { () in
+                headerView.categoryID = self.categoryID
+                headerView.orderArray = self.orderArray
+                headerView.orderKeysArray = self.orderKeysArray
+                headerView.delegate = self
+                headerView.orderDropDown()
+                headerView.arrangeDropDown.show()
+            }
+            return headerView
+        default:
+            break
         }
+        return UIView()
     }
-    @objc func onClickHeaderButton() {
-        print("Header Button")
-        arrangeDropDown.show()
-    }
-    
     
     //MARK:- API Call
     func adForest_categoryData(param: NSDictionary) {
@@ -314,16 +293,15 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
                 self.orderName = successResponse.topbar.sortArrKey.value
                 self.orderArray = []
                 for order in successResponse.topbar.sortArr {
+                    self.orderKeysArray.append(order.key)
                     self.orderArray.append(order.value)
                 }
-                self.orderDropDown()
                 AddsHandler.sharedInstance.objCategory = successResponse
                 AddsHandler.sharedInstance.isShowFeatureOnCategory = successResponse.extra.isShowFeatured
                 self.dataArray = successResponse.data.ads
                 self.categotyAdArray = successResponse.data.featuredAds.ads
                 self.tableView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -339,17 +317,12 @@ class CategoryController: UIViewController, UITableViewDelegate, UITableViewData
         AddsHandler.categoryData(param: param, success: { (successResponse) in
             self.stopAnimating()
             if successResponse.success {
-             
-                self.currentPage = successResponse.pagination.currentPage
-                self.maximumPage = successResponse.pagination.maxNumPages
-                
                 AddsHandler.sharedInstance.objCategory = successResponse
                 AddsHandler.sharedInstance.isShowFeatureOnCategory = successResponse.extra.isShowFeatured
                 self.dataArray.append(contentsOf: successResponse.data.ads)
-                self.categotyAdArray.append(contentsOf: successResponse.data.featuredAds.ads)
+                //self.categotyAdArray.append(contentsOf: successResponse.data.featuredAds.ads)
                 self.tableView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }

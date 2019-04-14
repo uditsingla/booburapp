@@ -92,8 +92,8 @@
   [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
     if (!error) {
       NSArray *items = [FBSDKTypeUtility arrayValue:result[@"data"]];
-      NSArray *recipientIDs = [items valueForKey:@"recipient_id"];
-      _recipientIDs = [[NSSet alloc] initWithArray:recipientIDs];
+      NSArray *recipientIDs = [items valueForKey:@"recipient_id"]; 
+        self->_recipientIDs = [[NSSet alloc] initWithArray:recipientIDs];
     }
   }];
 }

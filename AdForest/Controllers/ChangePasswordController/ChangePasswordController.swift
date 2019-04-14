@@ -53,20 +53,12 @@ class ChangePasswordController: UIViewController, UITextFieldDelegate, NVActivit
     override func viewDidLoad() {
         super.viewDidLoad()
         self.hideKeyboard()
+        self.googleAnalytics(controllerName: "Change Password Controller")
         self.adForest_populateData()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Change Password Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {

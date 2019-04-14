@@ -20,7 +20,7 @@ struct SearchRoot {
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
      */
-    init(fromDictionary dictionary: [String:Any]){
+    init(fromDictionary dictionary: [String:Any]) {
         data = [SearchData]()
         if let dataArray = dictionary["data"] as? [[String:Any]]{
             for dic in dataArray{

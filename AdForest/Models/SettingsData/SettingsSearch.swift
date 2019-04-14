@@ -9,7 +9,6 @@
 import Foundation
 
 struct SettingsSearch {
-    
    
     var input : String!
     var text : String!

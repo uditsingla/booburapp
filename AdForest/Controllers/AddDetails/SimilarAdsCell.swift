@@ -19,7 +19,13 @@ class SimilarAdsCell: UICollectionViewCell {
     @IBOutlet weak var lblName: UILabel!
     @IBOutlet weak var imgLocation: UIImageView!
     @IBOutlet weak var lblLocation: UILabel!
-    @IBOutlet weak var lblPrice: UILabel!
+    @IBOutlet weak var lblPrice: UILabel! {
+        didSet {
+            if let mainColor = UserDefaults.standard.string(forKey: "mainColor") {
+                lblPrice.textColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
     
     
     //MARK:- Properties

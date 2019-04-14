@@ -38,13 +38,15 @@ class BlogController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var dataArray = [BlogPost]()
     var currentPage = 0
     var maximumPage = 0
-    var defaults = UserDefaults.standard
+    let defaults = UserDefaults.standard
     var isFromHomeBlog = false
     
     //MARK:- View Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.googleAnalytics(controllerName: "Blog Controller")
+        self.adMob()
         if defaults.bool(forKey: "isRtl") {
             if isFromHomeBlog {
                 self.showBackButton()
@@ -61,24 +63,55 @@ class BlogController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }
         }
         self.adForest_blogData()
+        if defaults.bool(forKey: "isGuest") {
+            self.oltAdPost.isHidden = true
+        }
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         
     }
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Blog Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-    }
-    
     //MARK: - Custom
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
+    }
+    
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    self.tableView.translatesAutoresizingMaskIntoConstraints = false
+                    if objData?.position == "top" {
+                        self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 45).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                    }
+                    else {
+                        self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
     }
     
     //MARK:- Table View Delegate Methods
@@ -93,14 +126,13 @@ class BlogController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: BlogCell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! BlogCell
-        
         let objData = dataArray[indexPath.row]
         
         if objData.hasImage {
             if let imgUrl = URL(string: objData.image) {
-                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
                 cell.imgPicture.sd_setIndicatorStyle(.gray)
+                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
         else if objData.hasImage == false {

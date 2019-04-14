@@ -28,6 +28,7 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
     @IBOutlet weak var containerViewProfile: UIView! {
         didSet {
             containerViewProfile.addShadowToView()
+            collectionView.addSubview(refreshControl)
         }
     }
     
@@ -38,7 +39,6 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
     @IBOutlet weak var imgEdit: UIImageView!
     @IBOutlet weak var buttonEditProfile: UIButton!
     @IBOutlet weak var ratingBar: CosmosView!
-    @IBOutlet weak var lblLikes: UILabel!
     @IBOutlet weak var containerViewAdds: UIView!
     @IBOutlet weak var lblSoldAds: UILabel!
     @IBOutlet weak var lblAllAds: UILabel!
@@ -56,6 +56,7 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
             collectionView.delegate = self
             collectionView.dataSource = self
             collectionView.showsVerticalScrollIndicator = false
+            collectionView.addSubview(refreshControl)
         }
     }
     @IBOutlet weak var lblNoData: UILabel! {
@@ -76,38 +77,50 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
     //MARK:- Properties
     var dataArray = [MyAdsAd]()
     var noAddTitle = ""
-    var defaults = UserDefaults.standard
+    let defaults = UserDefaults.standard
+    var currentPage = 0
+    var maximumPage = 0
+    
+    lazy var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action:
+            #selector(refreshTableView),
+                                 for: UIControlEvents.valueChanged)
+        refreshControl.tintColor = UIColor.red
+        
+        return refreshControl
+    }()
     
     //MARK:- View Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if defaults.bool(forKey: "isRtl") {
-            self.addRightBarButtonWithImage(#imageLiteral(resourceName: "menu"))
+        self.adMob()
+        self.adForest_inactiveAdsData()
+        self.addLeftBarButtonWithImage(UIImage(named: "menu")!)
+        self.googleAnalytics(controllerName: "Inactive Ads Controller")
+        if defaults.bool(forKey: "isGuest") {
+            self.oltAdPost.isHidden = true
         }
-        else {
-            self.addLeftBarButtonWithImage(#imageLiteral(resourceName: "menu"))
-        }
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Inactive Ads Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-       
-        
         self.adForest_inactiveAdsData()
     }
     
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+   
+//        if AddsHandler.sharedInstance.objInactiveAds == nil{
+//             self.adForest_inactiveAdsData()
+//        }
+      
+    }
+    
     //MARK: - Custom
+    
+    @objc func refreshTableView() {
+        adForest_inactiveAdsData()
+    }
+    
     func showLoader() {
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
@@ -118,9 +131,9 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
             
             self.title = objData?.pageTitle
             if let imgUrl = URL(string: (objData?.profile.profileImg)!) {
-                self.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                self.imgPicture.sd_setIndicatorStyle(.gray)
                 self.imgPicture.sd_setShowActivityIndicatorView(true)
+                self.imgPicture.sd_setIndicatorStyle(.gray)
+                self.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
             if let userName = objData?.profile.displayName {
                 self.lblName.text = userName
@@ -145,7 +158,7 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
                 self.ratingBar.rating = Double(rateBar)!
             }
             if let avgRating = objData?.profile.rateBar.text {
-                self.lblLikes.text = avgRating
+                ratingBar.text = avgRating
             }
             
             if let soldAds = objData?.profile.adsSold {
@@ -165,6 +178,46 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         else {
         }
     }
+    
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    
+                    if objData?.position == "top" {
+                        self.containerViewProfile.translatesAutoresizingMaskIntoConstraints = false
+                        self.containerViewProfile.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                    }
+                    else {
+                        self.collectionView.translatesAutoresizingMaskIntoConstraints = false
+                        self.collectionView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: 70).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
+    }
+
     
     //MARK:- Collection View Delegate Methods
     
@@ -189,9 +242,9 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         let objData = dataArray[indexPath.row]
         for images in objData.adImages {
             if let imgUrl = URL(string: images.thumb) {
-                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
+                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
         
@@ -201,29 +254,9 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         if let price = objData.adPrice.price {
             cell.lblPrice.text = price
         }
-        if let mainColor = defaults.string(forKey: "mainColor") {
-             cell.lblPrice.textColor = Constants.hexStringToUIColor(hex: mainColor)
-        }
         return cell
     }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
-        if Constants.isiPhone5 {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 230 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isIphoneX {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 160 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isIphone6 {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 190 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isiPadDevice {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 200)
-        }
-        return CGSize(width: 139 * (self.view.frame.size.width/295), height: 190 * (self.view.frame.size.height/568))
-    }
-    
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let addDetailVC = self.storyboard?.instantiateViewController(withIdentifier: "AddDetailController") as! AddDetailController
         addDetailVC.isFromInactiveAds = true
@@ -238,11 +271,6 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
                 cell.transform = CGAffineTransform.identity
             })
         }
-        
-        let objData = AddsHandler.sharedInstance.objInactiveAds
-        var currentPage = objData?.pagination.currentPage as! Int
-        let maximumPage = objData?.pagination.maxNumPages as! Int
-      
         if indexPath.row == dataArray.count - 1 && currentPage < maximumPage {
             currentPage = currentPage + 1
             let param: [String: Any] = ["page_number": currentPage]
@@ -250,11 +278,24 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         }
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 8
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if Constants.isiPadDevice {
+            let width = collectionView.bounds.width/3.0
+            return CGSize(width: width, height: 200)
+        }
+        let width = collectionView.bounds.width/2.0
+        return CGSize(width: width, height: 200)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
 
@@ -276,18 +317,19 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         self.showLoader()
         AddsHandler.inactiveAds(success: { (successResponse) in
             self.stopAnimating()
+            self.refreshControl.endRefreshing()
             if successResponse.success {
                 self.noAddTitle = successResponse.message
+                self.currentPage = successResponse.data.pagination.currentPage
+                self.maximumPage = successResponse.data.pagination.maxNumPages
                 AddsHandler.sharedInstance.objInactiveAds = successResponse.data
                 self.dataArray = successResponse.data.ads
                 self.adForest_populateData()
                 self.collectionView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
-            
         }) { (error) in
             self.stopAnimating()
             let alert = Constants.showBasicAlert(message: error.message)
@@ -299,6 +341,7 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         self.showLoader()
         AddsHandler.moreInactiveAdsdata(param: param, success: { (successResponse) in
             self.stopAnimating()
+            self.refreshControl.endRefreshing()
             if successResponse.success {
                 AddsHandler.sharedInstance.objInactiveAds = successResponse.data
                 self.dataArray.append(contentsOf: successResponse.data.ads)
@@ -316,23 +359,3 @@ class InactiveAdsController: UIViewController, UIScrollViewDelegate, UICollectio
         }
     }
 }
-
-
-class InactiveCollectionCell: UICollectionViewCell {
-    
-    @IBOutlet weak var containerView: UIView! {
-        didSet {
-            containerView.addShadowToView()
-        }
-    }
-    
-    @IBOutlet weak var imgPicture: UIImageView!
-    @IBOutlet weak var lblName: UILabel!
-    @IBOutlet weak var lblPrice: UILabel!
-    
-}
-
-
-
-
-

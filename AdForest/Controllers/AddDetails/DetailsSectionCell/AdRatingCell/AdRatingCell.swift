@@ -10,12 +10,13 @@ import UIKit
 import Cosmos
 import TextFieldEffects
 import NVActivityIndicatorView
+import UITextField_Shake
 
 class AdRatingCell: UITableViewCell, NVActivityIndicatorViewable {
 
     //MARK:- Outlets
     
-    @IBOutlet weak var containerView: UIView! {
+    @IBOutlet weak var containerView: UIView!{
         didSet {
             containerView.addShadowToView()
         }
@@ -25,12 +26,21 @@ class AdRatingCell: UITableViewCell, NVActivityIndicatorViewable {
         didSet {
             ratingBar.settings.updateOnTouch = true
             ratingBar.settings.fillMode = .full
+            ratingBar.didTouchCosmos = didTouchCosmos
+            ratingBar.didFinishTouchingCosmos = didFinishTouchingCosmos
+            ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: Constants.AppColor.ratingColor)
         }
     }
-    @IBOutlet weak var txtComment: HoshiTextField!
+    @IBOutlet weak var txtComment: HoshiTextField! {
+        didSet{
+            if let mainColor = defaults.string(forKey: "mainColor") {
+                txtComment.borderActiveColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
     @IBOutlet weak var lblNotEdit: UILabel!
     @IBOutlet weak var oltSubmitRating: UIButton!{
-        didSet{
+        didSet {
             if let mainColor = UserDefaults.standard.string(forKey: "mainColor"){
                 oltSubmitRating.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
             }
@@ -44,50 +54,26 @@ class AdRatingCell: UITableViewCell, NVActivityIndicatorViewable {
     var rating: Double = 0
     var adID = 0
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    let defaults = UserDefaults.standard
+    
     
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
+        self.setupView()
     }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
+    
+    //MARK:- Custom
+    
+    func setupView() {
+        if defaults.bool(forKey: "isRtl") {
+            txtComment.textAlignment = .right
+        }
     }
+    
     //MARK:- IBActions
     @IBAction func actionSubmitRating(_ sender: Any) {
         self.btnSubmitAction?()
-        guard let comment = txtComment.text else {
-            return
-        }
-        
-        if comment == "" {
-            
-        }
-            
-            
-        else {
-            let param: [String: Any] = ["ad_id": adID, "rating": rating, "rating_comments": comment]
-            print(param)
-            let addDetail = AddDetailController()
-            addDetail.showLoader()
-            AddsHandler.ratingToAdd(parameter: param as NSDictionary, success: { (successResponse) in
-                NVActivityIndicatorPresenter.sharedInstance.stopAnimating()
-                if successResponse.success {
-                    let alert = Constants.showBasicAlert(message: successResponse.message)
-                    self.appDelegate.presentController(ShowVC: alert)
-                }
-                else {
-                    let alert = Constants.showBasicAlert(message: successResponse.message)
-                    self.appDelegate.presentController(ShowVC: alert)
-                }
-            }) { (error) in
-                 NVActivityIndicatorPresenter.sharedInstance.stopAnimating()
-                let alert = Constants.showBasicAlert(message: error.message)
-                self.appDelegate.presentController(ShowVC: alert)
-            }
-        }
-        
     }
     
     private func didTouchCosmos(_ rating: Double) {

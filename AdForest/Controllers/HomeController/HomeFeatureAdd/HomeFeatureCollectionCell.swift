@@ -26,4 +26,13 @@ class HomeFeatureCollectionCell: UICollectionViewCell {
         }
     }
     @IBOutlet weak var lblFeatured: UILabel!
+    
+    
+    var btnFullAction: (()->())?
+    
+    
+    @IBAction func actionFullButton(_ sender: Any) {
+        self.btnFullAction?()
+    }
+    
 }

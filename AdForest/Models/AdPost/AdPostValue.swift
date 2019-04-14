@@ -16,6 +16,7 @@ struct AdPostValue {
     var isShow : Bool!
     var name : String!
     var isChecked : Bool!
+    var tempIsSelected = false
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values

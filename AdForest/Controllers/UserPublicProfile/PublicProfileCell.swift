@@ -17,5 +17,11 @@ class PublicProfileCell: UICollectionViewCell {
     @IBOutlet weak var imgPic: UIImageView!
     @IBOutlet weak var lblType: UILabel!
     @IBOutlet weak var lblName: UILabel!
-    @IBOutlet weak var lblPrice: UILabel!
+    @IBOutlet weak var lblPrice: UILabel!{
+        didSet{
+            if let mainColor = UserDefaults.standard.string(forKey: "mainColor") {
+                self.lblPrice.textColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
 }

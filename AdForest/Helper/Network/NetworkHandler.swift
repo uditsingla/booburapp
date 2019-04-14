@@ -11,14 +11,11 @@ import Foundation
 import Alamofire
 
 class NetworkHandler {
-    
-    
+
     class func postRequest(url: String, parameters: Parameters?, success: @escaping (Any) -> Void, failure: @escaping (NetworkError) -> Void) {
         
         if Network.isAvailable {
-            
             var headers: HTTPHeaders
-            
             if UserDefaults.standard.bool(forKey: "isGuest") {
                 headers = [
                     "Accept": "application/json",
@@ -28,9 +25,7 @@ class NetworkHandler {
                     "Adforest-Request-From" : "ios"
                 ]
             }
-            
              if UserDefaults.standard.bool(forKey: "isSocial") {
-                print("Social Login")
                 var email = ""
                 var password = ""
                 if let userEmail = UserDefaults.standard.string(forKey: "email") {
@@ -52,7 +47,6 @@ class NetworkHandler {
                     "Adforest-Request-From" : "ios"
                 ]
             }
-          
             else {
                 var email = ""
                 var password = ""
@@ -79,6 +73,10 @@ class NetworkHandler {
             print(Parameters.self)
             manager.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).validate(statusCode: 200..<600).responseJSON
                 { (response) -> Void in
+                    
+                    print(response)
+                    
+                    
                 if let userToken = response.response?.allHeaderFields["Authorization"] as? String {
                     print(userToken)
                     debugPrint(userToken)
@@ -273,7 +271,6 @@ class NetworkHandler {
             if let userPassword = UserDefaults.standard.string(forKey: "password") {
                 password = userPassword
             }
-            print(email, password)
             let emailPass = "\(email):\(password)"
             let encodedString = emailPass.data(using: String.Encoding.utf8)!
             let base64String = encodedString.base64EncodedString(options: [])
@@ -402,9 +399,7 @@ class NetworkHandler {
     // MARK: Upload Multipart File
     
     class func upload(url: String, fileUrl: URL, fileName: String, params: Parameters?, uploadProgress: @escaping (Int) -> Void, success: @escaping (Any?) -> Void, failure: @escaping (NetworkError) -> Void) {
-        
         var headers: HTTPHeaders
-        
         if UserDefaults.standard.bool(forKey: "isGuest") {
             headers = [
                 "Accept": "application/json",
@@ -414,7 +409,6 @@ class NetworkHandler {
                 "Adforest-Request-From" : "ios"
             ]
         }
-       
         if UserDefaults.standard.bool(forKey: "isSocial") {
             print("Social Login")
             var email = ""
@@ -462,58 +456,39 @@ class NetworkHandler {
                 "Adforest-Request-From" : "ios"
             ]
         }
-        print(headers)
-        
         Alamofire.upload(multipartFormData:{ multipartFormData in
             multipartFormData.append(fileUrl, withName: fileName)
-            
             if let parameters = params {
                 for (key, value) in parameters {
                     multipartFormData.append((value as! String).data(using: String.Encoding.utf8)!, withName: key)
                 }
             }
-            
         }, usingThreshold: UInt64.init(), to: url, method: .post, headers: headers, encodingCompletion: { encodingResult in
-            
-            
             switch encodingResult {
-                
             case .success(let upload, _, _):
-                
                 upload.uploadProgress(closure: { (progress) in
                     let progress = Int(progress.fractionCompleted * 100)
                     uploadProgress(progress)
                 })
-                
                 upload.responseJSON { response in
-                    print(response)
-                    
                     let returnValue = response.result.value!
-                    
                     if let userToken = response.response?.allHeaderFields["Authorization"] as? String {
-                        
                         print("User Token is \(userToken)")
                         UserDefaults.standard.set(userToken, forKey: "userAuthToken")
                         UserDefaults.standard.synchronize()
-                        
                     }
-                    
                     success(returnValue)
                 }
-                
             case .failure(let error):
                 print(error.localizedDescription)
                 var networkError = NetworkError()
-                
                 if error._code == NSURLErrorTimedOut {
                     networkError.status = Constants.NetworkError.timout
                     networkError.message = Constants.NetworkError.timoutError
-                    
                     failure(networkError)
                 } else {
                     networkError.status = Constants.NetworkError.generic
                     networkError.message = Constants.NetworkError.genericError
-                    
                     failure(networkError)
                 }
             }
@@ -524,10 +499,7 @@ class NetworkHandler {
     class func uploadImageArray(url: String, imagesArray: [UIImage], fileName: String, params: Parameters?, uploadProgress: @escaping (Int) -> Void, success: @escaping (Any?) -> Void, failure: @escaping (NetworkError) -> Void) {
         
         var headers: HTTPHeaders
-        
-        
         if UserDefaults.standard.bool(forKey: "isSocial") {
-            print("Social Login")
             var email = ""
             var password = ""
             if let userEmail = UserDefaults.standard.string(forKey: "email") {
@@ -577,31 +549,24 @@ class NetworkHandler {
         
         Alamofire.upload(multipartFormData:{ multipartFormData in
             var i = 0
-            print(imagesArray.count)
-            
             for image in imagesArray {
-                print(image.description)
-                
+          
                 if let imageData = UIImageJPEGRepresentation(image, 0.5) {
+                
                 print(imageData)
                 multipartFormData.append(imageData,  withName: "nverness\(i).jpg", fileName: "Inverness\(i).jpg" , mimeType: "image/jpeg")
-                    
                     i = i + 1
                 print(fileName)
-                print(image.description)
+                print("Reduced..!\(image.description)")
                 }
             }
-            
             if let parameters = params {
                 for (key, value) in parameters {
                     print("Key \(key), Value\(value)")
-                  
                     multipartFormData.append((value as! String).data(using: String.Encoding.utf8)!, withName: key)
                 }
             }
         }, usingThreshold: UInt64.init(), to: url, method: .post, headers: headers, encodingCompletion: { encodingResult in
-            
-            
             switch encodingResult {
             case .success(let upload, _, _):
                 upload.uploadProgress(closure: { (progress) in

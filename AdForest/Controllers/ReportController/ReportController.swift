@@ -10,6 +10,7 @@ import UIKit
 import TextFieldEffects
 import DropDown
 import NVActivityIndicatorView
+import UITextField_Shake
 
 protocol ReportPopToHomeDelegate {
     func moveToHome(isMove: Bool)
@@ -18,7 +19,11 @@ protocol ReportPopToHomeDelegate {
 class ReportController: UIViewController , NVActivityIndicatorViewable {
     
     //MARK:- Outlets
-    @IBOutlet weak var containerView: UIView!
+    @IBOutlet weak var containerView: UIView!{
+        didSet{
+            containerView.addShadowToView()
+        }
+    }
     
     @IBOutlet weak var containerViewImg: UIView! {
         didSet {
@@ -27,6 +32,7 @@ class ReportController: UIViewController , NVActivityIndicatorViewable {
     }
     @IBOutlet weak var oltCancel: UIButton!{
         didSet{
+            oltCancel.roundCornors()
             if let mainColor = defaults.string(forKey: "mainColor"){
                 oltCancel.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
             }
@@ -39,7 +45,8 @@ class ReportController: UIViewController , NVActivityIndicatorViewable {
         }
     }
     @IBOutlet weak var oltSend: UIButton! {
-        didSet{
+        didSet {
+            oltSend.roundCornors()
             if let mainColor = defaults.string(forKey: "mainColor"){
                 oltSend.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
             }
@@ -63,21 +70,12 @@ class ReportController: UIViewController , NVActivityIndicatorViewable {
     //MARK:- View Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-       
+        self.googleAnalytics(controllerName: "Report Controller")
+        self.hideKeyboard()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Report Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        
         self.adForest_populateData()
     }
 
@@ -93,7 +91,6 @@ class ReportController: UIViewController , NVActivityIndicatorViewable {
             (index, item) in
             self.oltPopUp.setTitle(item, for: .normal)
             self.selectedValue = item
-            
         }
     }
     
@@ -116,9 +113,17 @@ class ReportController: UIViewController , NVActivityIndicatorViewable {
             if let nameText = objData?.select.name {
                 self.dropDownArray = nameText
             }
+            
+            if defaults.bool(forKey: "isRtl") {
+                oltPopUp.contentHorizontalAlignment = .right
+                txtMessage.textAlignment = .right
+            } else {
+                oltPopUp.contentHorizontalAlignment = .left
+                txtMessage.textAlignment = .left
+            }
+            
             self.spamPopUp()
         }
-        
         else {
             print("Empty Data")
         }
@@ -140,19 +145,17 @@ class ReportController: UIViewController , NVActivityIndicatorViewable {
         }
         
         if message == "" {
-            
+             self.txtMessage.shake(6, withDelta: 10, speed: 0.06)
         }
         else if selectedValue == "" {
             
         }
         else {
-            
             let param: [String: Any] = ["ad_id": adID, "option": selectedValue, "comments": message]
             print(param)
             self.adForest_reportAdd(parameter: param as NSDictionary)
         }
     }
-    
     
     //MARK:- API Calls
     func adForest_reportAdd(parameter: NSDictionary) {

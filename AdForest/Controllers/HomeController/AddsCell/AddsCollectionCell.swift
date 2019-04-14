@@ -25,4 +25,14 @@ class AddsCollectionCell: UICollectionViewCell {
             }
         }
     }
+    
+    //MARK:- Properties
+    var btnFullAction: (()->())?
+    
+    //MARK:- IBActions
+    @IBAction func actionFullButton(_ sender: Any) {
+        self.btnFullAction?()
+    }
+    
+    
 }

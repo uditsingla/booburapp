@@ -9,45 +9,59 @@
 import UIKit
 import SlideMenuControllerSwift
 import WebKit
+import NVActivityIndicatorView
+import WebKit
 
-class PagesController: UITableViewController {
+class PagesController: UIViewController, NVActivityIndicatorViewable, UIWebViewDelegate {
 
+    //MARK:- Outlets
+    @IBOutlet weak var webView: UIWebView!{
+        didSet {
+            webView.delegate =  self
+            webView.isOpaque = false
+            webView.backgroundColor = UIColor.clear
+        }
+    }
     
+    //MARK:- Properties
     var delegate :leftMenuProtocol?
-    //var slug = 0
-    //var page_id = 0
-    //var title = 0
-    //var post_id = 0
-    //@IBOutlet weak var webView: WKWebView!
+    var page_id = 0
+    var type = ""
+    var pageUrl = ""
     
+    //MARK:- View Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         self.addBackButtonToNavigationBar()
-        
-        //print("hii8888")
-        // print(slug)
-        //print(page_id)
-        //print(title)
-        //print(post_id)
+        self.googleAnalytics(controllerName: "Pages Controller")
+        if type == "simple" {
+            let param:[String: Any] = ["page_id": page_id]
+            print(param)
+            self.adForest_pagesData(param: param as NSDictionary)
+        } else {
+            guard let userEmail = UserDefaults.standard.string(forKey: "email") else {return}
+            guard let userPassword = UserDefaults.standard.string(forKey: "password") else {return}
+            
+            let emailPass = "\(userEmail):\(userPassword)"
+            let encodedString = emailPass.data(using: String.Encoding.utf8)!
+            let base64String = encodedString.base64EncodedString(options: [])
+            print(base64String)
+            let url = URL(string: pageUrl)
+            var request = URLRequest(url: url!)
+            request.setValue("Basic \(base64String)", forHTTPHeaderField: "Authorization")
+            request.setValue("body", forHTTPHeaderField: "Adforest-Shop-Request")
+            if UserDefaults.standard.bool(forKey: "isSocial") {
+                request.setValue("social", forHTTPHeaderField: "AdForest-Login-Type")
+            }
+            self.webView.loadRequest(request)
+        }
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-       
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Pages Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        //self.present("vikram")
-    }
-    
     
     //MARK:- Custom
+   
+    func showLoader() {
+        self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
+    }
     
     func addBackButtonToNavigationBar() {
         let leftButton = UIBarButtonItem(image: #imageLiteral(resourceName: "backbutton"), style: .done, target: self, action: #selector(moveToParentController))
@@ -57,5 +71,27 @@ class PagesController: UITableViewController {
     
     @objc func moveToParentController() {
         self.delegate?.changeViewController(.main)
+    }
+    
+    //MARK:- API Call
+    func adForest_pagesData(param: NSDictionary) {
+        self.showLoader()
+        UserHandler.termsConditions(parameter: param, success: { (successResponse) in
+            self.stopAnimating()
+            if successResponse.success {
+                self.title = successResponse.data.pageTitle
+                if let htmlString = successResponse.data.pageContent {
+                    self.webView.loadHTMLString(htmlString, baseURL: nil)
+                }
+            }
+            else {
+                let alert = Constants.showBasicAlert(message: successResponse.message)
+                self.presentVC(alert)
+            }
+        }) { (error) in
+            self.stopAnimating()
+            let alert = Constants.showBasicAlert(message: error.message)
+            self.presentVC(alert)
+        }
     }
 }

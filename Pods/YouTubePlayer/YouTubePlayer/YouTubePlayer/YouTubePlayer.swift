@@ -282,7 +282,6 @@ open class YouTubePlayerView: UIView, UIWebViewDelegate {
             
             // Succeeded
             return NSString(data: jsonData, encoding: String.Encoding.utf8.rawValue) as? String
-            
         } catch let jsonError {
             
             // JSON serialization failed

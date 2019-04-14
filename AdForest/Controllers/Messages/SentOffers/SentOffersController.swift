@@ -20,22 +20,24 @@ class SentOffersController: UIViewController, UITableViewDelegate, UITableViewDa
             tableView.tableFooterView = UIView()
             tableView.separatorStyle = .none
             tableView.addSubview(refreshControl)
-            tableView.showsVerticalScrollIndicator = false
-            let nib = UINib(nibName: "MessagesCell", bundle: nil)
-            tableView.register(nib, forCellReuseIdentifier: "MessagesCell")
+            tableView.register(UINib(nibName: "MessagesCell", bundle: nil), forCellReuseIdentifier: "MessagesCell")
         }
     }
     
     //MARK:- Properties
     var dataArray = [SentOffersItem]()
     var defaults = UserDefaults.standard
+    var currentPage = 0
+    var maximumPage = 0
+    
     lazy var refreshControl: UIRefreshControl = {
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action:
             #selector(refreshTableView),
                                  for: UIControlEvents.valueChanged)
-        refreshControl.tintColor = UIColor.red
-        
+        if let mainColor = defaults.string(forKey: "mainColor") {
+            refreshControl.tintColor = Constants.hexStringToUIColor(hex: mainColor)
+        }
         return refreshControl
     }()
     
@@ -43,18 +45,6 @@ class SentOffersController: UIViewController, UITableViewDelegate, UITableViewDa
     //MARK:- View Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(Constants.NotificationName.updateSentOffersData), object: nil, queue: nil) { (notification) in
-            self.dataArray = UserHandler.sharedInstance.sentOffersArray
-            self.tableView.reloadData()
-        }
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
         //Google Analytics Track data
         let tracker = GAI.sharedInstance().defaultTracker
         tracker?.set(kGAIScreenName, value: "Sent Offers")
@@ -62,20 +52,27 @@ class SentOffersController: UIViewController, UITableViewDelegate, UITableViewDa
         tracker?.send(builder.build() as [NSObject: AnyObject])
     }
    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.adForest_sentOffersData()
+        self.showLoader()
+    }
     //MARK: - Custom
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
     
     @objc func refreshTableView() {
-        self.dataArray = UserHandler.sharedInstance.sentOffersArray
-        self.tableView.reloadData()
+        self.refreshControl.beginRefreshing()
+        self.adForest_sentOffersData()
     }
     
     //MARK:- table View Delegate Methods
+    
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return dataArray.count
     }
@@ -91,15 +88,19 @@ class SentOffersController: UIViewController, UITableViewDelegate, UITableViewDa
         if let name = objData.messageAuthorName {
             cell.lblDetail.text = name
         }
-        
         for item in objData.messageAdImg {
             if let imgUrl = URL(string: item.thumb) {
-                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
-        
+        if objData.messageReadStatus == true {
+            cell.imgBell.isHidden = true
+        } else {
+            cell.imgBell.image = UIImage(named: "bell")
+            cell.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.messageCellColor)
+        }
         return cell
     }
     
@@ -124,16 +125,10 @@ class SentOffersController: UIViewController, UITableViewDelegate, UITableViewDa
                 cell.transform = CGAffineTransform.identity
             })
         }
-        
-        let data = dataArray[indexPath.row]
-        let objData = UserHandler.sharedInstance.objSentOffers
-        
-        var currentPage = objData?.pagination.currentPage
-        let maximumPage = objData?.pagination.maxNumPages
-        
-        if indexPath.row == dataArray.count - 1 && currentPage! < maximumPage! {
-            currentPage = currentPage! + 1
-            let param: [String: Any] = ["page_number": currentPage!]
+        if indexPath.row == dataArray.count - 1 && currentPage < maximumPage {
+            currentPage += 1
+            let param: [String: Any] = ["page_number": currentPage]
+            print(param)
             self.adForest_loadMoreData(param: param as NSDictionary)
             self.showLoader()
         }
@@ -141,15 +136,16 @@ class SentOffersController: UIViewController, UITableViewDelegate, UITableViewDa
     
     
     //MARK:- API Calls
-    func adForest_loadMoreData(param: NSDictionary) {
-        UserHandler.moreSentOffersData(param: param, success: { (successResponse) in
+    func adForest_sentOffersData() {
+        UserHandler.getSentOffersData(success: { (successResponse) in
             self.stopAnimating()
             self.refreshControl.endRefreshing()
             if successResponse.success {
-                self.dataArray.append(contentsOf: successResponse.data.sentOffers.items)
+                self.currentPage = successResponse.data.pagination.currentPage
+                self.maximumPage = successResponse.data.pagination.maxNumPages
+                self.dataArray = successResponse.data.sentOffers.items
                 self.tableView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -160,25 +156,31 @@ class SentOffersController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     
-    
+    func adForest_loadMoreData(param: NSDictionary) {
+        UserHandler.moreSentOffersData(param: param, success: { (successResponse) in
+            self.stopAnimating()
+            self.refreshControl.endRefreshing()
+            if successResponse.success {
+                self.dataArray.append(contentsOf: successResponse.data.sentOffers.items)
+                self.tableView.reloadData()
+            } else {
+                let alert = Constants.showBasicAlert(message: successResponse.message)
+                self.presentVC(alert)
+            }
+        }) { (error) in
+            self.stopAnimating()
+            let alert = Constants.showBasicAlert(message: error.message)
+            self.presentVC(alert)
+        }
+    }
 }
 
 extension SentOffersController: IndicatorInfoProvider {
     func indicatorInfo(for pagerTabStripController: PagerTabStripViewController) -> IndicatorInfo {
-       
-        var pagerStripTitle = ""
-        if let settingsInfo = defaults.object(forKey: "settings") {
-            let  settingObject = NSKeyedUnarchiver.unarchiveObject(with: settingsInfo as! Data) as! [String : Any]
-            print(settingObject)
-            let model = SettingsRoot(fromDictionary: settingObject)
-            print(model)
-            if let pagerTitle = model.data.messagesScreen.sent {
-                pagerStripTitle = pagerTitle
-            }
+        var pageTitle = ""
+        if let title = self.defaults.string(forKey: "sentOffers") {
+            pageTitle = title
         }
-        
-        let title = pagerStripTitle
-        return IndicatorInfo(title: title)
+        return IndicatorInfo(title: pageTitle)
     }
-    
 }

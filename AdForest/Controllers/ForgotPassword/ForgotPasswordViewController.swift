@@ -11,9 +11,9 @@ import NVActivityIndicatorView
 
 class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVActivityIndicatorViewable {
 
+    //MARK:- Outlets
     @IBOutlet weak var headerView: UIView!
     @IBOutlet weak var headerImage: UIImageView!
-    
     @IBOutlet weak var lblEnterEmail: UILabel!
     @IBOutlet weak var emailIcon: UIImageView!
     @IBOutlet weak var emailField: UITextField! {
@@ -21,7 +21,6 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVAct
             emailField.delegate = self
         }
     }
-    
     @IBOutlet weak var backButton: UIButton! {
         didSet {
             backButton.contentHorizontalAlignment = .left
@@ -48,6 +47,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVAct
         else{
              self.adForest_ForgotData()
         }
+        txtFieldsWithRtl()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -70,6 +70,15 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVAct
     }
     
     //MARK: - Custom
+    
+    func txtFieldsWithRtl(){
+        if UserDefaults.standard.bool(forKey: "isRtl") {
+            emailField.textAlignment = .right
+        } else {
+            emailField.textAlignment = .left
+        }
+    }
+    
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
@@ -83,9 +92,9 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVAct
             }
             
             if let imgUrl = URL(string: (objData?.logo)!) {
-                headerImage.sd_setImage(with: imgUrl, completed: nil)
                 headerImage.sd_setShowActivityIndicatorView(true)
                 headerImage.sd_setIndicatorStyle(.gray)
+                headerImage.sd_setImage(with: imgUrl, completed: nil)
             }
             
             if let headingText = objData?.heading {
@@ -139,33 +148,19 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVAct
         }
     }
     
-    
     //MARK:- IBActions
-    
     @IBAction func backButtonPressed(_ sender: UIButton) {
         self.navigationController?.popViewController(animated: true)
     }
     
     @IBAction func submitButtonPressed(_ sender: UIButton) {
-    
         guard let email = emailField.text else {
             return
         }
-        
         if email == "" {
-            let alert = Constants.showBasicAlert(message: "Enter Data")
-            self.presentVC(alert)
+            self.emailField.shake(6, withDelta: 10, speed: 0.06)
         }
-//        else if !email.isValidEmail {
-//            let alert = Constants.showBasicAlert(message: "Enter Valid Data")
-//            self.presentVC(alert)
-//        }
-//
-            
-            
-            
         else {
-            
             if isFromVerification {
                 let param: [String: Any] = ["user_id": user_id, "confirm_code": email]
                 print(param)
@@ -229,8 +224,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVAct
             if successResponse.success {
                 UserHandler.sharedInstance.userConfirmationData = successResponse.data
                 self.adForest_populateUserConfirmationData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -251,8 +245,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVAct
                     self.appDelegate.moveToLogin()
                 })
               self.presentVC(alert)
-            }
-            else{
+            } else{
                 let alert = Constants.showBasicAlert(message: successresponse.message)
                 self.presentVC(alert)
             }
@@ -262,6 +255,4 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate, NVAct
             self.presentVC(alert)
         }
     }
-    
-    
 }

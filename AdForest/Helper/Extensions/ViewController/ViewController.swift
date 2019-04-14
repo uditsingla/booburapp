@@ -9,7 +9,7 @@
 
 import Foundation
 import UIKit
-import GoogleMobileAds
+import Firebase
 
 extension UIViewController {
     var appDelegate : AppDelegate {
@@ -17,12 +17,23 @@ extension UIViewController {
     }
 }
 
+extension UIViewController {
+    func showNavigationActivity() {
+        let activityIndicator = UIActivityIndicatorView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
+        let barButton = UIBarButtonItem(customView: activityIndicator)
+        self.navigationItem.setRightBarButton(barButton, animated: true)
+        activityIndicator.startAnimating()
+    }
+    
+    func hideNavigationActivity() {
+        navigationItem.rightBarButtonItem = nil
+    }
+}
 
 extension UIViewController {
     
     func hideBackButton() {
         self.navigationItem.hidesBackButton = true
-        // self.navigationController?.navigationBar.backItem?.title = ""
     }
     
     func showBackButton() {
@@ -31,12 +42,10 @@ extension UIViewController {
         backButton.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
         if UserDefaults.standard.bool(forKey: "isRtl") {
             backButton.setBackgroundImage(#imageLiteral(resourceName: "arabicBackButton"), for: .normal)
-        }
-        else {
+        } else {
             backButton.setBackgroundImage(#imageLiteral(resourceName: "backbutton"), for: .normal)
         }
         backButton.addTarget(self, action: #selector(onBackButtonClciked), for: .touchUpInside)
-        
         let backBarButton = UIBarButtonItem(customView: backButton)
         self.navigationItem.leftBarButtonItem = backBarButton
     }
@@ -57,44 +66,28 @@ extension UIViewController {
 }
 
 extension UIViewController {
-    
-    func shareButton() {
-        let shareButton = UIButton(type: .custom)
-        if #available(iOS 11, *) {
-            shareButton.widthAnchor.constraint(equalToConstant: 25).isActive = true
-            shareButton.heightAnchor.constraint(equalToConstant: 25).isActive = true
-        }
-        else {
-            shareButton.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
-        }
-        shareButton.setBackgroundImage(#imageLiteral(resourceName: "appShare"), for: .normal)
-        shareButton.addTarget(self, action: #selector(onClickShareButton), for: .touchUpInside)
-        let barButton = UIBarButtonItem(customView: shareButton)
-        self.navigationItem.rightBarButtonItem = barButton
+    func googleAnalytics(controllerName: String) {
+        let tracker = GAI.sharedInstance().defaultTracker
+        tracker?.set(kGAIScreenName, value: controllerName)
+        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
+        tracker?.send(builder.build() as [NSObject: AnyObject])
     }
-    
-    @objc func onClickShareButton() {
-        
-        if let settingsInfo = UserDefaults.standard.object(forKey: "settings") {
-            let  settingObject = NSKeyedUnarchiver.unarchiveObject(with: settingsInfo as! Data) as! [String : Any]
-            print(settingObject)
-            
-            let model = SettingsRoot(fromDictionary: settingObject)
-            var shareMessage = ""
-            
-            if let msg = model.data.appShare.url {
-                shareMessage = msg
-            }
-            let shareVC = UIActivityViewController(activityItems: [shareMessage], applicationActivities: nil)
-            shareVC.popoverPresentationController?.sourceView = self.view
-            self.presentVC(shareVC)
+}
+
+extension String {
+    var isValidURL: Bool {
+        let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        if let match = detector.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.endIndex.encodedOffset)) {
+            // it is a link, if the match covers the whole string
+            return match.range.length == self.endIndex.encodedOffset
+        } else {
+            return false
         }
     }
 }
 
 extension UIViewController {
     func showToast(message : String) {
-        //self.view.frame.size.width/2 - 75
         let toastLabel = UILabel(frame: CGRect(x: 50, y: self.view.frame.size.height-100, width: self.view.frame.width - 100, height: 35))
         toastLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
         toastLabel.textColor = UIColor.white
@@ -112,7 +105,6 @@ extension UIViewController {
         })
     }
 }
-
 
 extension UIViewController {
     // MARK: - Notifications

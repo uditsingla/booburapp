@@ -11,38 +11,75 @@ import TextFieldEffects
 import DropDown
 import NVActivityIndicatorView
 
-class AdPostCell: UITableViewCell {
+protocol textFieldValueDelegate {
+    func changeText(value: String, fieldTitle: String)
+}
+
+protocol PopupValueChangeDelegate {
+    func changePopupValue(selectedKey: String, fieldTitle: String, selectedText : String)
+}
+
+class AdPostCell: UITableViewCell , UITextFieldDelegate {
 
     //MARK:- Outlets
     @IBOutlet weak var containerView: UIView!
-    @IBOutlet weak var txtType: HoshiTextField!
+    @IBOutlet weak var txtType: HoshiTextField! {
+        didSet {
+            txtType.delegate = self
+            if let mainColor = defaults.string(forKey: "mainColor") {
+                txtType.borderActiveColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
     
      //MARK:- Properties
     var fieldName = ""
     var dataArray = [AdPostField]()
+    var data = [AdPostField]()
+    var currentIndex = 0
+    var delegateText : textFieldValueDelegate?
+    let defaults = UserDefaults.standard
     
     //MARK:- View Life Cycle
     override func awakeFromNib() {
         super.awakeFromNib()
-       selectionStyle = .none
+        selectionStyle = .none
+        self.setupView()
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
     }
+    //MARK:- Custom
+    func setupView() {
+        if defaults.bool(forKey: "isRtl") {
+            txtType.textAlignment = .right
+        }
+    }
+    
+    //MARK:- IBActions
+    @IBAction func textChange(_ sender: HoshiTextField) {
+        if let text = sender.text {
+            delegateText?.changeText(value: text, fieldTitle: fieldName)
+        }
+    }
+    
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let result = (textField.text as NSString?)?.replacingCharacters(in: range, with: string) ?? string
+        delegateText?.changeText(value: result, fieldTitle: fieldName)
+        return true
+    }
+    
 }
-
 
 class AdPostPopupCell : UITableViewCell, NVActivityIndicatorViewable, SubCategoryDelegate {
     
     //MARK:- Outlets
     @IBOutlet weak var oltPopup: UIButton! {
-        didSet{
-            oltPopup.contentHorizontalAlignment = .left
+        didSet {
             oltPopup.setTitleColor(UIColor.darkGray, for: .normal)
         }
     }
-    
     @IBOutlet weak var imgArrow: UIImageView!
     @IBOutlet weak var lblType: UILabel!
     
@@ -70,11 +107,23 @@ class AdPostPopupCell : UITableViewCell, NVActivityIndicatorViewable, SubCategor
     
     var dataArray = [AdPostField]()
     var appDel = UIApplication.shared.delegate as! AppDelegate
+    var delegatePopup: PopupValueChangeDelegate?
+      let defaults = UserDefaults.standard
     
     //MARK:- View Life Cycle
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
+        self.setupView()
+    }
+   
+    //MARK:- Custom
+    func setupView() {
+        if defaults.bool(forKey: "isRtl") {
+            oltPopup.contentHorizontalAlignment = .right
+        } else {
+            oltPopup.contentHorizontalAlignment = .left
+        }
     }
     
     //MARK:- SetUp Drop Down
@@ -89,7 +138,8 @@ class AdPostPopupCell : UITableViewCell, NVActivityIndicatorViewable, SubCategor
             self.hasTempelate = self.hasTempelateArray[index]
             self.hasCatTempelate = self.hasCatTemplateArray[index]
             self.hasSub = self.hasSubArray[index]
-          
+            self.delegatePopup?.changePopupValue(selectedKey: self.selectedKey, fieldTitle: self.fieldName, selectedText: item)
+            
             if self.hasCatTempelate {
                 if self.hasTempelate {
                     let param: [String: Any] = ["cat_id": self.selectedKey]

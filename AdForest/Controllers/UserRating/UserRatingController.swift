@@ -46,22 +46,14 @@ class UserRatingController: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewDidLoad() {
         super.viewDidLoad()
         self.showBackButton()
+        self.googleAnalytics(controllerName: "User Rating Controller")
+        self.adForest_userRatingData()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "User Rating Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        self.adForest_userRatingData()
-    }
-
+ 
     //MARK: - Custom
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
@@ -193,7 +185,9 @@ class UserRatingController: UIViewController, UITableViewDelegate, UITableViewDa
                 self.ratingArray = successResponse.data.rattings
                 
                 for items in successResponse.data.rattings {
-                    self.replyArray = [items.reply]
+                    if items.hasReply {
+                       self.replyArray = [items.reply]
+                    }
                 }
                 self.tableView.reloadData()
             }

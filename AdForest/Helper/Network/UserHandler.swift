@@ -14,6 +14,11 @@ class UserHandler {
     
     var objSettings: SettingsData?
     var objSettingsMenu = [SettingsPage]()
+    var sideMenuArray = [SettingsArray]()
+    var menuKeysArray = [String]()
+    var menuValuesArray = [String]()
+    
+    
     var objLoginDetails: LoginData?
     var objregisterDetails: RegisterData?
     var objForgotDetails: ForgotData?
@@ -21,28 +26,20 @@ class UserHandler {
     var objUserRating : UserRatings?
     var objPaymentType : PackagesData?
    
-    var objPayPal : PackagesDataPaypal?
     var objStripeData: StripePaymentData?
     var objUserRatingReply: [UserRatingReply]?
     var objPublicProfile: PublicProfileData?
-    var objSentOffers: SentOffersData?
-    var objOfferOnAdsData: OfferAdsData?
     var objSentOfferChatData: SentOfferChatData?
     
     var objBlog: BlogDetailRoot?
     var userConfirmationData : UserConfirmationData?
     
-    var sentOffersArray = [SentOffersItem]()
-    var messagesTitle = ""
-    var sentOffersTitle = ""
-    var offerOnAdsTitle = "" 
+    var objAdMob : AdMob?
     
     //MARK:- Settings Data
     class func settingsdata(success: @escaping(SettingsRoot) -> Void, failure: @escaping(NetworkError)-> Void) {
-        
         let url = Constants.URL.baseUrl+Constants.URL.settings
         print(url)
-        
         NetworkHandler.getRequest(url: url, parameters: nil, success: { (successResponse) in
             let dictionary = successResponse as! [String: Any]
             let objData = SettingsRoot(fromDictionary: dictionary)
@@ -55,9 +52,7 @@ class UserHandler {
         }
     }
     
-    
     //MARK:- Login Get
-    
     class func loginDetails(success: @escaping(LoginRoot) -> Void, failure: @escaping(NetworkError) -> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.logIn
         print(url)
@@ -71,7 +66,6 @@ class UserHandler {
     }
     
     //MARK:- Login Post
-    
     class func loginUser(parameter: NSDictionary, success: @escaping(UserRegisterRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.logIn
         print(url)
@@ -88,7 +82,6 @@ class UserHandler {
     }
     
     //MARK:- Register Get
-    
     class func registerDetails(success: @escaping(RegisterRoot) -> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.register
         print(url)
@@ -144,7 +137,6 @@ class UserHandler {
     }
     
     //MARK:- Forgot Password Get
-    
     class func forgotDetails(success: @escaping(ForgotRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.forgotPassword
         print(url)
@@ -158,7 +150,6 @@ class UserHandler {
     }
     
     //MARK:- Forgot Password Post
-    
     class func forgotUser(parameter: NSDictionary, success: @escaping(UserForgot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.forgotPassword
         print(url)
@@ -171,9 +162,7 @@ class UserHandler {
         }
     }
     
-    
     //MARK:- Profile Get
-    
     class func profileGet(success: @escaping(ProfileDetailsRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.profileGet
         print(url)
@@ -213,7 +202,6 @@ class UserHandler {
     }
     
     //MARK:- Update Profile Image
-    
     class func imageUpdate(fileUrl: URL, fileName: String, uploadProgress: @escaping(Int)-> Void ,success: @escaping(UpdateImageRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.imageUpdate
         print(url)
@@ -221,13 +209,10 @@ class UserHandler {
             print(uploadProgress)
         }, success: { (successResponse) in
             let dictionary = successResponse as! [String: Any]
-            
             let data = NSKeyedArchiver.archivedData(withRootObject: dictionary)
             UserDefaults.standard.set(data, forKey: "userData")
             UserDefaults.standard.synchronize()
-            
             let objImage = UpdateImageRoot(fromDictionary: dictionary)
-            
             success(objImage)
         }) { (error) in
              failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
@@ -302,8 +287,7 @@ class UserHandler {
     //MARK:- Blog Detail
     class func blogDetail(parameter: NSDictionary, success: @escaping(BlogDetailRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.blogDetail
-        print("hello1")
-        print(parameter)
+        print(url)
         NetworkHandler.postRequest(url: url, parameters: parameter as? Parameters, success: { (successResponse) in
             let dictionary = successResponse as! [String: Any]
             let objBlog = BlogDetailRoot(fromDictionary: dictionary)
@@ -327,7 +311,6 @@ class UserHandler {
     }
     
     //MARK:- Get Packages Data
-    
     class func packagesdata(success: @escaping(PackagesDataRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.packages
         print(url)
@@ -339,13 +322,11 @@ class UserHandler {
             failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
         }
     }
-   
-    //MARK:- Payment Confirmation
     
+    //MARK:- Payment Confirmation
     class func paymentConfirmation(parameters: NSDictionary, success: @escaping(AdRemovedRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.paymentConfirmation
         print(url)
-        
         NetworkHandler.postRequest(url: url, parameters: parameters as? Parameters, success: { (successResponse) in
             let dictionary = successResponse as! [String: Any]
             let objResponse = AdRemovedRoot(fromDictionary: dictionary)
@@ -356,7 +337,6 @@ class UserHandler {
     }
     
     //MARK:- Payment Success
-    
     class func paymentSuccess(success: @escaping(PaymentSuccessRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         let url = Constants.URL.baseUrl+Constants.URL.paymentSuccess
         print(url)
@@ -364,20 +344,6 @@ class UserHandler {
             let dictionary = successResponse as! [String: Any]
             let objResponse = PaymentSuccessRoot(fromDictionary: dictionary)
             success(objResponse)
-        }) { (error) in
-            failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
-        }
-    }
-    
-    //MARK:- Stripe Check Out Data
-    
-    class func stripeCheckOutData(success: @escaping(StripePaymentRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
-        let url = Constants.URL.baseUrl+Constants.URL.stripeCheckOutProcess
-        print(url)
-        NetworkHandler.getRequest(url: url, parameters: nil, success: { (successResponse) in
-            let dictionary = successResponse as! [String: Any]
-            let objStripe = StripePaymentRoot(fromDictionary: dictionary)
-            success(objStripe)
         }) { (error) in
             failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
         }
@@ -409,7 +375,7 @@ class UserHandler {
         }
     }
     
-    //Load more sent offers Data
+    //MARK:- Load more sent offers Data
     class func moreSentOffersData(param: NSDictionary, success: @escaping(SentOffersRoot)-> Void, failure: @escaping(NetworkError)-> Void ) {
         let url = Constants.URL.baseUrl+Constants.URL.sentOffers
         print(url)
@@ -548,6 +514,32 @@ class UserHandler {
             let dictionary = sucessResponse as! [String: Any]
             let objUser = UserForgot(fromDictionary: dictionary)
             success(objUser)
+        }) { (error) in
+             failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
+        }
+    }
+    
+    //MARK:- App Settings
+    class func appSettings (success: @escaping(AppSettingRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
+        let url = Constants.URL.baseUrl+Constants.URL.appSettings
+        print(url)
+        NetworkHandler.getRequest(url: url, parameters: nil, success: { (successResponse) in
+            let dictionary = successResponse as! [String: Any]
+            let objSetting = AppSettingRoot(fromDictionary: dictionary)
+            success(objSetting)
+        }) { (error) in
+             failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
+        }
+    }
+    
+    //MARK:- Feedback
+    class func feedback(parameter: NSDictionary, success: @escaping(UserForgot)-> Void, failure: @escaping(NetworkError)-> Void) {
+        let url = Constants.URL.baseUrl+Constants.URL.feedback
+        print(url)
+        NetworkHandler.postRequest(url: url, parameters: parameter as? Parameters, success: { (successResponse) in
+            let dictionary = successResponse as! [String: Any]
+            let objFeedback = UserForgot(fromDictionary: dictionary)
+            success(objFeedback)
         }) { (error) in
              failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
         }

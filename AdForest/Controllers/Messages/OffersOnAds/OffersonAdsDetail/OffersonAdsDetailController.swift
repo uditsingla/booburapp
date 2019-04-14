@@ -19,9 +19,7 @@ class OffersonAdsDetailController: UIViewController, UITableViewDelegate, UITabl
             tableView.tableFooterView = UIView()
             tableView.separatorStyle = .none
             tableView.addSubview(refreshControl)
-            tableView.showsVerticalScrollIndicator = false
-            let nib = UINib(nibName: "MessagesCell", bundle: nil)
-            tableView.register(nib, forCellReuseIdentifier: "MessagesCell")
+            tableView.register(UINib(nibName: "MessagesCell", bundle: nil), forCellReuseIdentifier: "MessagesCell")
         }
     }
     
@@ -47,22 +45,16 @@ class OffersonAdsDetailController: UIViewController, UITableViewDelegate, UITabl
         super.viewDidLoad()
         self.showBackButton()
         self.refreshButton()
-        
+        self.googleAnalytics(controllerName: "OffersonAdsDetailController")
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-       
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         let param: [String: Any] = ["ad_id": ad_id]
         print(param)
         self.showLoader()
         self.adForest_getDetailsData(param: param as NSDictionary)
     }
-    
     
     //MARK:- Custom
     func showLoader(){
@@ -72,9 +64,9 @@ class OffersonAdsDetailController: UIViewController, UITableViewDelegate, UITabl
     @objc func refreshTableView() {
         let param: [String: Any] = ["ad_id": ad_id]
         print(param)
+        self.refreshControl.beginRefreshing()
         self.adForest_getDetailsData(param: param as NSDictionary)
     }
-    
     
     func refreshButton() {
         let button = UIButton(type: .custom)
@@ -95,6 +87,7 @@ class OffersonAdsDetailController: UIViewController, UITableViewDelegate, UITabl
     @objc func onClickRefreshButton() {
         let param: [String: Any] = ["ad_id": ad_id]
         print(param)
+        self.showLoader()
         self.adForest_getDetailsData(param: param as NSDictionary)
     }
     
@@ -121,6 +114,16 @@ class OffersonAdsDetailController: UIViewController, UITableViewDelegate, UITabl
         if let title = objData.messageAdTitle {
             cell.lblDetail.text = title
         }
+        
+        if objData.messageReadStatus == true {
+            cell.imgBell.image = UIImage(named: "bell")
+        } else {
+            let image = UIImage(named: "bell")
+            let tintImage = image?.tint(with: UIColor.red)
+            cell.imgBell.image = tintImage
+            cell.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.messageCellColor)
+        }
+        
         return cell
     }
     
@@ -151,10 +154,8 @@ class OffersonAdsDetailController: UIViewController, UITableViewDelegate, UITabl
             print(param)
             self.showLoader()
             self.adForest_loadMoreData(param: param as NSDictionary)
-            
         }
     }
-    
     
     //MARK:- API Call
     func adForest_getDetailsData(param: NSDictionary) {
@@ -165,15 +166,12 @@ class OffersonAdsDetailController: UIViewController, UITableViewDelegate, UITabl
                 self.title = successResponse.extra.pageTitle
                 self.currentPage = successResponse.data.pagination.currentPage
                 self.maximumPage = successResponse.data.pagination.maxNumPages
-                
                 self.dataArray = successResponse.data.receivedOffers.items
                 self.tableView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
-            
         }) { (error) in
             self.stopAnimating()
             let alert = Constants.showBasicAlert(message: error.message)
@@ -181,23 +179,17 @@ class OffersonAdsDetailController: UIViewController, UITableViewDelegate, UITabl
         }
     }
     
-    
     func adForest_loadMoreData(param: NSDictionary) {
         UserHandler.getOfferAddDetail(param: param, success: { (successResponse) in
             self.stopAnimating()
             self.refreshControl.endRefreshing()
             if successResponse.success {
-                self.title = successResponse.extra.pageTitle
-                self.currentPage = successResponse.data.pagination.currentPage
-                self.maximumPage = successResponse.data.pagination.maxNumPages
                 self.dataArray.append(contentsOf: successResponse.data.receivedOffers.items)
                 self.tableView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
-            
         }) { (error) in
             self.stopAnimating()
             let alert = Constants.showBasicAlert(message: error.message)

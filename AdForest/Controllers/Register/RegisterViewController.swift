@@ -11,7 +11,7 @@ import FBSDKLoginKit
 import GoogleSignIn
 import NVActivityIndicatorView
 
-class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollViewDelegate, NVActivityIndicatorViewable {
+class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollViewDelegate, NVActivityIndicatorViewable, GIDSignInUIDelegate, GIDSignInDelegate {
     
     //MARK:- Outlets
     
@@ -78,13 +78,14 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
     }
     
     @IBOutlet weak var containerViewSocialButton: UIView!
+    
     //MARK:- Properties
     
     var isAgreeTerms = false
     var page_id = ""
     var defaults = UserDefaults.standard
     var isVerifivation = false
-    
+    var isVerifyOn = false
     
     
     //MARK:- Application Life Cycle
@@ -92,7 +93,10 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
     override func viewDidLoad() {
         super.viewDidLoad()
         self.hideKeyboard()
+        GIDSignIn.sharedInstance().uiDelegate = self
+        GIDSignIn.sharedInstance().delegate = self
         self.adForest_registerData()
+        txtFieldsWithRtl()
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -124,14 +128,34 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
     }
     
     //MARK: - Custom
+    
+    func txtFieldsWithRtl(){
+        if UserDefaults.standard.bool(forKey: "isRtl") {
+            txtEmail.textAlignment = .right
+            txtPassword.textAlignment = .right
+            txtName.textAlignment = .right
+            txtPhone.textAlignment = .right
+            
+        } else {
+            txtEmail.textAlignment = .left
+            txtPassword.textAlignment = .left
+            txtName.textAlignment = .left
+            txtPhone.textAlignment = .left
+        }
+    }
+    
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
 
     func adForest_populateData() {
         if UserHandler.sharedInstance.objregisterDetails != nil {
-            
             let objData = UserHandler.sharedInstance.objregisterDetails
+            
+            if let isVerification = objData?.isVerifyOn {
+                self.isVerifyOn = isVerification
+            }
+
             if let bgColor = defaults.string(forKey: "mainColor") {
                 self.buttonRegister.layer.borderColor = Constants.hexStringToUIColor(hex: bgColor).cgColor
                 self.buttonRegister.setTitleColor(Constants.hexStringToUIColor(hex: bgColor), for: .normal)
@@ -220,7 +244,6 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
                     self.buttonGoogle.setTitle(googletext, for: .normal)
                 }
             }
-            
         }
     }
     
@@ -239,11 +262,15 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
     }
     
     @IBAction func actionTermsCondition(_ sender: UIButton) {
-        let termsVC = self.storyboard?.instantiateViewController(withIdentifier: "TermsConditionsController") as! TermsConditionsController
-        termsVC.modalTransitionStyle = .flipHorizontal
-        termsVC.modalPresentationStyle = .overCurrentContext
-        termsVC.page_id = self.page_id
-        self.presentVC(termsVC)
+        if self.page_id == "" {
+        }
+        else {
+            let termsVC = self.storyboard?.instantiateViewController(withIdentifier: "TermsConditionsController") as! TermsConditionsController
+            termsVC.modalTransitionStyle = .flipHorizontal
+            termsVC.modalPresentationStyle = .overCurrentContext
+            termsVC.page_id = self.page_id
+            self.presentVC(termsVC)
+        }
     }
     
     @IBAction func actionRegister(_ sender: UIButton) {
@@ -263,30 +290,25 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
         }
         
         if name == "" {
-            let alert = Constants.showBasicAlert(message: "Enter Name")
-            self.presentVC(alert)
+             self.txtName.shake(6, withDelta: 10, speed: 0.06)
         }
         else if email == "" {
-            let alert = Constants.showBasicAlert(message: "Enter Email")
-            self.presentVC(alert)
+            self.txtEmail.shake(6, withDelta: 10, speed: 0.06)
         }
         else if !email.isValidEmail {
-            let alert = Constants.showBasicAlert(message: "Enter Valid Email")
-            self.presentVC(alert)
+            self.txtEmail.shake(6, withDelta: 10, speed: 0.06)
         }
         
         else if phone == "" {
-            let alert = Constants.showBasicAlert(message: "Enter Number")
-            self.presentVC(alert)
+             self.txtPhone.shake(6, withDelta: 10, speed: 0.06)
         }
         else if !phone.isValidPhone {
-            let alert = Constants.showBasicAlert(message: "Enter valid Number")
-            self.presentVC(alert)
+             self.txtPhone.shake(6, withDelta: 10, speed: 0.06)
         }
         else if password == "" {
-            let alert = Constants.showBasicAlert(message: "Enter password")
-            self.presentVC(alert)
+            self.txtPassword.shake(6, withDelta: 10, speed: 0.06)
         }
+
         else if isAgreeTerms == false {
             let alert = Constants.showBasicAlert(message: "Please Agree with terms and conditions")
             self.presentVC(alert)
@@ -333,10 +355,6 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
     
     @IBAction func actionLoginHere(_ sender: Any) {
         self.navigationController?.popViewController(animated: true)
-        if self.navigationController?.viewControllers.count == 1{
-            let loginView = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as! LoginViewController
-            self.navigationController?.pushViewController(loginView, animated: true)
-        }
     }
     
     
@@ -363,7 +381,7 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
                     self.defaults.set(email, forKey: "email")
                     self.defaults.set("1122", forKey: "password")
                     self.defaults.synchronize()
-                    self.adForest_registerUser(param: param as NSDictionary)
+                    self.adForest_loginUser(parameters: param as NSDictionary)
                 }
             }
         }
@@ -383,13 +401,7 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
             print(error.localizedDescription)
         }
         if error == nil {
-            guard let email = user.profile.email,
-                let googleID = user.userID,
-                let name = user.profile.name
-                else { return }
-            guard let token = user.authentication.idToken else {
-                return
-            }
+            guard let email = user.profile.email else { return }
             let param: [String: Any] = [
                 "email": email,
                 "type": "social"
@@ -399,7 +411,7 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
             self.defaults.set(email, forKey: "email")
             self.defaults.set("1122", forKey: "password")
             self.defaults.synchronize()
-            self.adForest_registerUser(param: param as NSDictionary)
+            self.adForest_loginUser(parameters: param as NSDictionary)
         }
     }
     // Google Sign In Delegate
@@ -440,7 +452,7 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
         self.showLoader()
         UserHandler.registerUser(parameter: param, success: { (successResponse) in
             self.stopAnimating()
-            if successResponse.success  {
+            if successResponse.success {
                 if self.isVerifivation {
                     let alert = AlertView.prepare(title: "", message: successResponse.message, okAction: {
                         let confirmationVC = self.storyboard?.instantiateViewController(withIdentifier: "ForgotPasswordViewController") as! ForgotPasswordViewController
@@ -465,5 +477,37 @@ class RegisterViewController: UIViewController,UITextFieldDelegate, UIScrollView
             self.presentVC(alert)
         }
     }
+    
+    // Login User With Social
+    func adForest_loginUser(parameters: NSDictionary) {
+        self.showLoader()
+        UserHandler.loginUser(parameter: parameters , success: { (successResponse) in
+            self.stopAnimating()
+            if successResponse.success{
+                if self.isVerifyOn && successResponse.data.isAccountConfirm == false {
+                    let alert = AlertView.prepare(title: "", message: successResponse.message, okAction: {
+                        let confirmationVC = self.storyboard?.instantiateViewController(withIdentifier: "ForgotPasswordViewController") as! ForgotPasswordViewController
+                        confirmationVC.isFromVerification = true
+                        confirmationVC.user_id = successResponse.data.id
+                        self.navigationController?.pushViewController(confirmationVC, animated: true)
+                    })
+                    self.presentVC(alert)
+                }
+                else {
+                    self.defaults.set(true, forKey: "isLogin")
+                    self.defaults.synchronize()
+                    self.appDelegate.moveToHome()
+                }
+            }
+            else {
+                let alert = Constants.showBasicAlert(message: successResponse.message)
+                self.presentVC(alert)
+            }
+        }) { (error) in
+            let alert = Constants.showBasicAlert(message: error.message)
+            self.presentVC(alert)
+        }
+    }
+    
 }
 

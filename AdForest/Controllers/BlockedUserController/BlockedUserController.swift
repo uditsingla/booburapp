@@ -14,7 +14,7 @@ class BlockedUserController: UIViewController, UITableViewDelegate, UITableViewD
     //MARK:- Outlets
     
     @IBOutlet weak var tableView: UITableView!{
-        didSet{
+        didSet {
             tableView.delegate = self
             tableView.dataSource = self
             tableView.tableFooterView = UIView()
@@ -31,19 +31,11 @@ class BlockedUserController: UIViewController, UITableViewDelegate, UITableViewD
         super.viewDidLoad()
         self.showBackButton()
         self.adForest_getBlockedUsersList()
+        self.googleAnalytics(controllerName: "Blocked Users Controller")
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Blocked Users Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
     }
     
     //MARK: - Custom

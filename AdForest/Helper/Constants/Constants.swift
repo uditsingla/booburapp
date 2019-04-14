@@ -11,13 +11,16 @@ import UIKit
 import DeviceKit
 
 class Constants {
-    struct  URL { // http://boobur.com/wp-json/wp/v2/pages/2
-        static let ipAddress =    "https://boobur.com/"
-        static let baseUrl =  ipAddress + "" + "wp-json/adforest/v1/"
+    struct  URL {
+    
+      
+        static let ipAddress =  "https://boobur.com/"
+        
+        static let baseUrl =  ipAddress + "wp-json/adforest/v1/"
         
         static let homeData = "home"
         static let category = "ad_post/category"
-        static let pages = "wp-json/wp/v2/pages/2"
+        static let locationDetail = "terms"
         
         static let settings = "settings"
         static let logIn = "login"
@@ -43,6 +46,9 @@ class Constants {
         static let makeAddFeature = "ad_post/featured"
         static let makeAddFavourite = "ad_post/favourite"
         static let reportAdd = "ad_post/report"
+        static let addDetailRating = "ad_post/ad_rating"
+        static let publicUserRating = "profile/ratting_get"
+        static let postRating = "profile/ratting"
         
         static let getBidsData = "ad_post/bid"
         static let adNewReply = "ad_post/ad_rating/new"
@@ -59,7 +65,6 @@ class Constants {
         static let packages = "packages"
         static let paymentConfirmation = "payment"
         static let paymentSuccess = "payment/complete"
-        static let stripeCheckOutProcess = "payment/card"
         
         static let sentOffers = "message"
         static let offerOnAds = "message/inbox"
@@ -85,32 +90,44 @@ class Constants {
         
         static let deleteAccount = "profile/delete/user_account"
         static let termsPage = "page"
+
+        static let sellerList = "sellers"
+        
+        static let appSettings = "app_extra"
+        static let feedback = "app_extra/feedback"
     }
-    
-    
+   
+
     struct customCodes {
+        //Live
         static let purchaseCode = "a94ee504-b3df-4d92-8eca-0ab7b5cab675"
         static let securityCode = "0987654321"
     }
     
-    
     struct googlePlacesAPIKey {
-        //AIzaSyASktdfn6Azi3LbWtN8FCqj-6W-bDpeHL0
         static let placesKey =  "AIzaSyAzXDEebJV9MxtPAPhP1B2w5T3AYK2JOu0"
     }
     
     struct AppColor {
         static let greenColor = "#24a740"
         static let redColor = "#F25E5E"
-        static let navigationColor = 0xf58936
+        static let ratingColor = "#ffcc00"
+        static let orangeColor = "#f58936"
+        static let messageCellColor = "fffcf6"
+        static let brownColor = "#90000000"
+        static let expired = "#d9534f"
+        static let active = "#4caf50"
+        static let sold = "#3498db"
+        static let featureAdd = "#d9534f"
+        static let phoneVerified = "#8ac249"
+        static let phoneNotVerified = "#F25E5E"
     }
+    
     
     struct NotificationName {
         static let updateUserProfile = "updateProfile"
         static let updateAddDetails = "updateAds"
         static let updateBidsStats = "bidsStats"
-        static let updateSentOffersData = "sentOffers"
-        static let updateMessageTitle = "UpdateTitle"
         static let adPostImageDelete = "updateMainData"
         static let searchDynamicData = "UpdateDynamicData"
         static let updateAdPostDynamicData = "UpdateAdPostDynamicData"
@@ -166,7 +183,19 @@ class Constants {
         }
         return String(data: data, encoding: String.Encoding.utf8)
     }
+
     
+    static func dateFormatter(date: String) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        dateFormatter.timeZone = NSTimeZone(name: "UTC")! as TimeZone
+        let date = dateFormatter.date(from: date)
+        // change to a readable time format and change to local time zone
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        dateFormatter.timeZone = NSTimeZone.local
+        let timeStamp = dateFormatter.string(from: date!)
+        return timeStamp
+    }
     
     static func hexStringToUIColor (hex:String) -> UIColor {
         var cString:String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
@@ -178,7 +207,6 @@ class Constants {
         if ((cString.count) != 6) {
             return UIColor.gray
         }
-        
         var rgbValue:UInt32 = 0
         Scanner(string: cString).scanHexInt32(&rgbValue)
         
@@ -190,6 +218,45 @@ class Constants {
         )
     }
     
+    static func crossString (titleStr : String) -> NSMutableAttributedString {
+        let attributeString: NSMutableAttributedString = NSMutableAttributedString(string: titleStr)
+        attributeString.addAttribute(NSAttributedStringKey.baselineOffset, value: 1, range: NSMakeRange(0, attributeString.length ))
+        attributeString.addAttribute(NSAttributedStringKey.strikethroughStyle, value: 1, range: NSMakeRange(0, attributeString.length  ))
+        attributeString.addAttribute(NSAttributedStringKey.strikethroughColor, value: UIColor.black, range:  NSMakeRange(0, attributeString.length))
+        return attributeString
+    }
+    
+   static func attributedString(from string: String, nonBoldRange: NSRange?) -> NSAttributedString {
+        let fontSize = UIFont.systemFontSize
+        let attrs = [
+             NSAttributedStringKey.font : UIFont.boldSystemFont(ofSize: fontSize),
+             NSAttributedStringKey.foregroundColor: UIColor.black
+        ]
+        let nonBoldAttribute = [
+            NSAttributedStringKey.font: UIFont.systemFont(ofSize: fontSize),
+            ]
+        let attrStr = NSMutableAttributedString(string: string, attributes: attrs)
+        if let range = nonBoldRange {
+            attrStr.setAttributes(nonBoldAttribute, range: range)
+        }
+        return attrStr
+    }
+    
+    static func labelString(from string: String, nonBoldRange: NSRange?) -> NSAttributedString {
+        let fontSize = UIFont.systemFontSize
+        let attrs = [
+            NSAttributedStringKey.font : UIFont.boldSystemFont(ofSize: fontSize),
+            NSAttributedStringKey.foregroundColor: UIColor.black
+        ]
+        let nonBoldAttribute = [
+            NSAttributedStringKey.font: UIFont.systemFont(ofSize: fontSize),
+            ]
+        let attrStr = NSMutableAttributedString(string: string, attributes: attrs)
+        if let range = nonBoldRange {
+            attrStr.setAttributes(nonBoldAttribute, range: range)
+        }
+        return attrStr
+    }
     
     public static var isiPadDevice: Bool {
         
@@ -227,13 +294,21 @@ class Constants {
     public static var isIphone6 : Bool {
         let device = Device()
         switch device {
-        case .iPhone6 , .simulator(.iPhone6), .iPhone6s , .simulator(.iPhone6s):
+        case .iPhone6 , .simulator(.iPhone6), .iPhone6s , .simulator(.iPhone6s) , .iPhone7, .simulator(.iPhone7), .iPhone8, .simulator(.iPhone8):
             return true
-            
         default:
             return false
         }
-
+    }
+    
+    public static var isIphonePlus : Bool {
+        let device = Device()
+        switch device {
+        case .iPhone6Plus, .simulator(.iPhone6Plus)  ,.iPhone7Plus, .simulator(.iPhone7Plus),.iPhone8Plus, .simulator(.iPhone8Plus):
+            return true
+        default:
+            return false
+        }
     }
 
     public static var isIphoneX : Bool {
@@ -243,6 +318,18 @@ class Constants {
         switch device {
         case .iPhoneX, .simulator(.iPhoneX) :
                  return true
+        default:
+            return false
+        }
+    }
+    
+    public static var isIphoneXR : Bool {
+        
+        let device = Device()
+        
+        switch device {
+        case .iPhoneX, .simulator(.iPhoneX) :
+            return true
         default:
             return false
         }
@@ -265,17 +352,12 @@ class Constants {
         let device = Device()
         
         switch device {
-        case .iPad2, .iPad3, .iPad4 , .iPad5 , .iPadAir, .iPadAir2, .iPadMini, .iPadMini2, .iPadMini3, .iPadMini4, .iPadPro9Inch, .iPadPro10Inch, .iPadPro12Inch, .iPadPro12Inch2, .iPadPro12Inch2:
-            
+        case .iPad2, .iPad3, .iPad4 , .iPad5 , .iPadAir, .iPadAir2, .iPadMini, .iPadMini2, .iPadMini3, .iPadMini4, .iPadPro9Inch, .iPadPro10Inch, .iPadPro12Inch, .iPadPro12Inch2:
             return UIFont(name: "System-Thin", size: CGFloat(size + 2))!
-            
         case .iPhone4, .iPhone4s , .iPhone5, .iPhone5c, .iPhone5s:
-            
             return UIFont (name: "System-Thin", size: CGFloat(size - 2))!
-            
         default:
             return UIFont (name: "System-Thin", size: CGFloat(size))!
-            
         }
     }
 }

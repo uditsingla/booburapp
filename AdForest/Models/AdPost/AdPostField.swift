@@ -20,8 +20,9 @@ struct AdPostField {
     var mainTitle : String!
     var title : String!
     var values : [AdPostValue]!
-
     
+    var tempIsSelected = false
+
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values

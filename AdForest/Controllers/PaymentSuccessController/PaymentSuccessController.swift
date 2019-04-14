@@ -2,25 +2,21 @@
 //  PaymentSuccessController.swift
 //  AdForest
 //
-//  Created by apple on 4/5/18.
+//  Created by Apple on 10/9/18.
 //  Copyright © 2018 apple. All rights reserved.
 //
 
 import UIKit
 import NVActivityIndicatorView
 
-protocol MoveToPackagesDelegate {
-    func moveToRoot(isMove: Bool)
-}
-
 class PaymentSuccessController: UIViewController , UIScrollViewDelegate, NVActivityIndicatorViewable, UIWebViewDelegate {
-
+    
     //MARK:- Outlets
     @IBOutlet weak var scrollBar: UIScrollView! {
         didSet {
             scrollBar.delegate = self
             scrollBar.isScrollEnabled = true
-            scrollBar.showsVerticalScrollIndicator = false
+            scrollBar.showsVerticalScrollIndicator = true
         }
     }
     @IBOutlet weak var buttonCancel: UIButton!
@@ -33,10 +29,8 @@ class PaymentSuccessController: UIViewController , UIScrollViewDelegate, NVActiv
             webView.backgroundColor = UIColor.white
         }
     }
-   // @IBOutlet weak var buttonContinue: UIButton!
     
     //MARK:- Properties
-    var delegate: MoveToPackagesDelegate?
     var dataArray = [PaymentSuccessData]()
     
     
@@ -44,22 +38,11 @@ class PaymentSuccessController: UIViewController , UIScrollViewDelegate, NVActiv
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-       
+        self.googleAnalytics(controllerName: "Payment Success Controller")
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Payment Success Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        
         self.adForest_paymentSuccessData()
     }
     
@@ -75,16 +58,11 @@ class PaymentSuccessController: UIViewController , UIScrollViewDelegate, NVActiv
     
     func adForest_populateData() {
         if dataArray.isEmpty {
-            
-        }
-        else {
+        } else {
             for items in dataArray {
                 if let responseText = items.orderThankyouTitle {
                     self.lblResponse.text = responseText
                 }
-//                if let buttonText = items.orderThankyouBtn {
-//                    self.buttonContinue.setTitle(buttonText, for: .normal)
-//                }
                 if let webViewData = items.data {
                     self.webView.loadHTMLString(webViewData, baseURL: nil)
                 }
@@ -93,7 +71,6 @@ class PaymentSuccessController: UIViewController , UIScrollViewDelegate, NVActiv
     }
     
     //to set webview size with amount of data
-    
     func webViewDidFinishLoad(_ webView: UIWebView) {
         webView.frame.size.height = 1
         webView.frame.size = webView.sizeThatFits(.zero)
@@ -101,18 +78,11 @@ class PaymentSuccessController: UIViewController , UIScrollViewDelegate, NVActiv
     
     
     //MARK:- IBActions
-
+    
     @IBAction func actionCancel(_ sender: UIButton) {
         self.dismissVC {
-            self.delegate?.moveToRoot(isMove: true)
         }
     }
-    
-//    @IBAction func actionContinue(_ sender: Any) {
-//        self.dismissVC(completion: nil)
-//    }
-    
-    
     
     //MARK:- API Call
     func adForest_paymentSuccessData() {
@@ -122,8 +92,7 @@ class PaymentSuccessController: UIViewController , UIScrollViewDelegate, NVActiv
             if successResponse.success {
                 self.dataArray = [successResponse.data]
                 self.adForest_populateData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }

@@ -79,23 +79,25 @@ class LatestAddsCell: UITableViewCell, UICollectionViewDelegate, UICollectionVie
         if let price = objData.adPrice.price {
             cell.lblPrice.text = price
         }
+        cell.btnFullAction = { () in
+            self.delegate?.goToAddDetail(ad_id: objData.adId)
+        }
         return cell
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let objData = dataArray[indexPath.row]
-        self.delegate?.goToAddDetail(ad_id: objData.adId)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: 140, height: 210)
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 4
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
@@ -130,7 +132,15 @@ class LatestAddsCollectionCell : UICollectionViewCell {
         didSet{
             if let mainColor = UserDefaults.standard.string(forKey: "mainColor"){
                 lblPrice.textColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
         }
     }
-}
+    
+    //MARK:- Properties
+    var btnFullAction : (()->())?
+    
+    //MARK:- IBActions
+    @IBAction func actionFullButton(_ sender: Any) {
+        self.btnFullAction?()
+    }
 }

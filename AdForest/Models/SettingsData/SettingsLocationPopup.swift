@@ -17,6 +17,7 @@ struct SettingsLocationPopup {
     var sliderStep : Int!
     var text : String!
     
+    var currentLocation: String!
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
@@ -27,6 +28,8 @@ struct SettingsLocationPopup {
         sliderNumber = dictionary["slider_number"] as? Int
         sliderStep = dictionary["slider_step"] as? Int
         text = dictionary["text"] as? String
+        
+        currentLocation = dictionary["location"] as? String
     }
     
     /**
@@ -49,6 +52,9 @@ struct SettingsLocationPopup {
         }
         if text != nil{
             dictionary["text"] = text
+        }
+        if currentLocation != nil {
+            dictionary["location"] = currentLocation
         }
         return dictionary
     }

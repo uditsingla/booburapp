@@ -9,8 +9,18 @@
 import Foundation
 import UIKit
 
+class ButtonWithImage: UIButton {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if imageView != nil {
+            imageEdgeInsets = UIEdgeInsets(top: 5, left: 4, bottom: 5, right: (bounds.width - 35))
+            titleEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        }
+    }
+}
+
+
 extension UIButton {
-    
     func roundCornors(radius: CGFloat = 5) {
         layer.masksToBounds = true
         layer.cornerRadius = radius
@@ -19,22 +29,12 @@ extension UIButton {
 }
 
 extension UIButton {
-    
     func circularButton() {
-      //  layer.shadowColor = UIColor.black.cgColor
-      //  layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
         layer.masksToBounds = false
-      //  layer.shadowRadius = 1.0
-        //layer.shadowOpacity = 0.5
         layer.cornerRadius = frame.width / 2
         clipsToBounds = true
     }
-  
 }
-
-
-
-
 extension UIButton {
     /// Add image on left view
     func leftImage(image: UIImage) {
@@ -54,8 +54,19 @@ extension UIButton {
     }
 }
 
+
+extension UIButton {
+    func underline() {
+        guard let text = self.titleLabel?.text else { return }
+        
+        let attributedString = NSMutableAttributedString(string: text)
+        attributedString.addAttribute(NSAttributedStringKey.underlineStyle, value: NSUnderlineStyle.styleSingle.rawValue, range: NSRange(location: 0, length: text.count))
+        
+        self.setAttributedTitle(attributedString, for: .normal)
+    }
+}
+
 class UnderlineTextButton: UIButton {
-    
     override func setTitle(_ title: String?, for state: UIControlState) {
         super.setTitle(title, for: .normal)
         self.setAttributedTitle(self.attributedString(), for: .normal)

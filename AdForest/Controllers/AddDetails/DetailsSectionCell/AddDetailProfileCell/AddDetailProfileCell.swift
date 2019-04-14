@@ -21,7 +21,6 @@ class AddDetailProfileCell: UITableViewCell {
     @IBOutlet weak var lblType: UILabel!
     @IBOutlet weak var lblLastLogin: UILabel!
     @IBOutlet weak var ratingBar: CosmosView!
-    @IBOutlet weak var ratingText: UILabel!
     @IBOutlet weak var imgProfile: UIImageView!
     @IBOutlet weak var oltCoverButton: UIButton!
     @IBOutlet weak var oltBlockButton: UIButton!
@@ -30,20 +29,30 @@ class AddDetailProfileCell: UITableViewCell {
     //MARK:- Properties
     var btnCoverAction : (()->())?
     var btnBlock: (()->())?
-    
+    var btnUserProfileAction: (()->())?
+    let defaults = UserDefaults.standard
     
     //MARK:- View Life Cycle
     
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
-    }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
+        self.setupView()
     }
     
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        super.setSelected(selected, animated: animated)
+    }
+    
+    //MARK:- Custom
+    func setupView() {
+        if defaults.bool(forKey: "isRtl") {
+            lblLastLogin.textAlignment = .right
+        }
+    }
+    
+    
+    //MARK:- IBActions
     @IBAction func coverButtonAction(_ sender: Any) {
         self.btnCoverAction?()
     }
@@ -51,5 +60,10 @@ class AddDetailProfileCell: UITableViewCell {
     @IBAction func actionDelete(_ sender: UIButton) {
         self.btnBlock?()
     }
+    @IBAction func actionUserRating(_ sender: Any) {
+        self.btnUserProfileAction?()
+    }
+    
+    
     
 }

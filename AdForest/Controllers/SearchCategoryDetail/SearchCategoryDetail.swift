@@ -16,7 +16,7 @@ class SearchCategoryDetail: UIViewController, UITableViewDelegate, UITableViewDa
     
     //MARK:- Outlets
     @IBOutlet weak var lblName: UILabel!
-    @IBOutlet weak var tableView: UITableView!{
+    @IBOutlet weak var tableView: UITableView! {
         didSet {
             tableView.delegate = self
             tableView.dataSource = self
@@ -39,7 +39,7 @@ class SearchCategoryDetail: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
 }
-    @IBOutlet weak var cstTableHeight: NSLayoutConstraint!
+   // @IBOutlet weak var cstTableHeight: NSLayoutConstraint!
     
     @IBOutlet weak var viewTopLabel: UIView!{
         didSet{
@@ -58,6 +58,7 @@ class SearchCategoryDetail: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewDidLoad() {
         super.viewDidLoad()
         self.adForest_populateData()
+        self.googleAnalytics(controllerName: "Search Category Detail")
     }
     
     override func didReceiveMemoryWarning() {
@@ -65,22 +66,8 @@ class SearchCategoryDetail: UIViewController, UITableViewDelegate, UITableViewDa
         
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Search Category Detail")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-    }
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        cstTableHeight.constant = tableView.contentSize.height
-        self.view.layoutIfNeeded()
-    }
-    
     //MARK: - Custom
-    func showLoader(){
+    func showLoader() {
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
     

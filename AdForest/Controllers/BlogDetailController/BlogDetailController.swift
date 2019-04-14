@@ -55,32 +55,59 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
   
     
     //MARK:- View Life Cycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.showBackButton()
-    
+        self.adMob()
+        self.googleAnalytics(controllerName: "Blog Detail Controller")
         let param: [String: Any] = ["post_id": post_id]
         print(param)
         self.adForest_blogDetail(parameter: param as NSDictionary)
+        if defaults.bool(forKey: "isGuest") {
+            self.oltAdPost.isHidden = true
+        }
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Blog Detail Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-    }
-    
     //MARK: - Custom
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
+    }
+    
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    self.tableView.translatesAutoresizingMaskIntoConstraints = false
+                    if objData?.position == "top" {
+                        self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 45).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                    }
+                    else {
+                        self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
     }
     
     //MARK:- Table View Delegate Methods
@@ -144,11 +171,17 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
             let objData = dataArray[indexPath.row]
             let htmlString = objData.post.desc
             let htmlHeight = contentHeight[indexPath.row]
-
             cell.webView.tag = indexPath.row
             cell.webView.delegate = self
             cell.webView.loadHTMLString(htmlString!, baseURL: nil)
+            cell.webView.scrollView.isScrollEnabled = false
+//            let stringSimple = htmlString?.html2String
+//            print(stringSimple!)
+//            let requestURL = URL(string:stringSimple!)
+//            let request = URLRequest(url: requestURL!)
+//            cell.webView.loadRequest(request)
             cell.webView.frame = CGRect(x: 0, y: 0, width: cell.frame.size.width, height: htmlHeight)
+            
             return cell
         }
         else if section == 2 {
@@ -182,7 +215,7 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
                 cell.oltReply.isHidden = true
             }
             else {
-                 cell.oltReply.isHidden = false
+                cell.oltReply.isHidden = false
                 if objData.canReply {
                     cell.oltReply.isHidden = false
                     cell.btnReplyAction = { () in
@@ -194,12 +227,10 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
                         commentVC.comment_id = objData.commentId
                         self.presentVC(commentVC)
                     }
-                }
-                else {
+                } else {
                     cell.oltReply.isHidden = true
                 }
             }
-            
             return cell
         }
             
@@ -232,9 +263,7 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
                 let cell: AdRatingCell = tableView.dequeueReusableCell(withIdentifier: "AdRatingCell", for: indexPath) as! AdRatingCell
                 let objData = dataArray[indexPath.row]
                 let data = UserHandler.sharedInstance.objBlog
-                
                 cell.ratingBar.isHidden = true
-                
                 if objData.post.commentStatus == "open" {
                     if objData.post.hasComment {
                         cell.lblTitle.text = ""
@@ -256,12 +285,11 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
                     }
                     
                     cell.btnSubmitAction = { () in
-                        
                         guard let txtComment = cell.txtComment.text else {
                             return
                         }
                         if txtComment == "" {
-                            
+                            cell.txtComment.shake(6, withDelta: 10, speed: 0.06)
                         }
                         else {
                             var postID = 0
@@ -283,14 +311,13 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
                     cell.oltSubmitRating.isHidden = true
                     cell.txtComment.isHidden = true
                 }
-                    return cell
+                return cell
             }
         }
         return UITableViewCell()
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    
         let section = indexPath.section
         var height: CGFloat = 0.0
         if section == 0 {
@@ -302,10 +329,8 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
                 height = 70
             }
         }
-    
         else if section == 1 {
-            height = contentHeight[indexPath.row]
-
+            height = contentHeight[indexPath.row] + 80
         }
         else if section == 2 {
             height = UITableViewAutomaticDimension
@@ -329,11 +354,7 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         return height
     }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 0
-    }
-    
+
     func webViewDidFinishLoad(_ webView: UIWebView) {
         if contentHeight[webView.tag] != 0.0 {
             return
@@ -382,10 +403,13 @@ class BlogDetailController: UIViewController, UITableViewDelegate, UITableViewDa
         UserHandler.blogPostComment(parameter: param, success: { (successResponse) in
             self.stopAnimating()
             if successResponse.success {
-                let alert = Constants.showBasicAlert(message: successResponse.message)
+                let alert = AlertView.prepare(title: "", message: successResponse.message, okAction: {
+                    let param: [String: Any] = ["post_id": self.post_id]
+                    print(param)
+                    self.adForest_blogDetail(parameter: param as NSDictionary)
+                })
                 self.presentVC(alert)
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }

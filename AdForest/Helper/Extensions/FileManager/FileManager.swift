@@ -11,9 +11,7 @@ import UIKit
 
 extension FileManager {
     func saveFileToDocumentDirectory(fileUrl: URL, name: String, extention:String) -> URL? {
-        
         let videoData = NSData(contentsOf: fileUrl as URL)
-        
         let path = try! FileManager.default.url(for: FileManager.SearchPathDirectory.documentDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
         
         let filePath = path.appendingPathComponent(name + extention)

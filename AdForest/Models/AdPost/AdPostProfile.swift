@@ -25,9 +25,9 @@ struct AdPostProfile {
     var name : AdPostField!
     var phone : AdPostField!
     var phoneEditable : Bool!
+    var bumpAd: AdPostBumpAdd!
     
-    
-   
+    var bumpAdText : AdPostFeaturedAdText!
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
@@ -65,6 +65,13 @@ struct AdPostProfile {
             featuredAd = AdPostField(fromDictionary: featuredAdData)
         }
         
+        if let bumpAdData = dictionary["bump_ad"] as? [String: Any] {
+            bumpAd = AdPostBumpAdd(fromDictionary: bumpAdData)
+        }
+        
+        if let bumpAdTextData = dictionary["bump_ad_text"] as? [String: Any] {
+            bumpAdText = AdPostFeaturedAdText(fromDictionary: bumpAdTextData)
+        }
     }
     
     /**
@@ -114,6 +121,9 @@ struct AdPostProfile {
         }
         if featuredAd != nil{
             dictionary["featured_ad"] = featuredAd.toDictionary()
+        }
+        if bumpAd != nil {
+            dictionary["bump_ad"] = bumpAd.toDictionary()
         }
         return dictionary
     }

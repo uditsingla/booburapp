@@ -36,7 +36,6 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
     @IBOutlet weak var buttonEditProfile: UIButton!
     @IBOutlet weak var imgEdit: UIImageView!
     @IBOutlet weak var ratingBar: CosmosView!
-    @IBOutlet weak var lblLikes: UILabel!
     @IBOutlet weak var containerViewLblAdds: UIView!
     @IBOutlet weak var lblSoldAds: UILabel!
     @IBOutlet weak var lblAllAds: UILabel!
@@ -46,7 +45,7 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
         didSet {
             collectionView.delegate = self
             collectionView.dataSource = self
-            collectionView.showsVerticalScrollIndicator = false
+            collectionView.addSubview(refreshControl)
         }
     }
     
@@ -70,51 +69,54 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
     var dataArray = [MyAdsAd]()
     var data : MyAdsRoot?
     var noAddTitle = ""
+    var currentPage = 0
+    var maximumPage = 0
     
-    
-    var defaults = UserDefaults.standard
+    let defaults = UserDefaults.standard
     var settingObject = [String: Any]()
     
     var popUpMsg = ""
     var popUpText = ""
     var popUpCancelButton = ""
     var popUpOkButton = ""
+    lazy var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action:
+            #selector(refreshTableView),
+                                 for: UIControlEvents.valueChanged)
+        refreshControl.tintColor = UIColor.red
+        
+        return refreshControl
+    }()
     
     //MARK:- View Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if defaults.bool(forKey: "isRtl") {
-            self.addRightBarButtonWithImage(#imageLiteral(resourceName: "menu"))
+        self.addLeftBarButtonWithImage(UIImage(named: "menu")!)
+        self.adMob()
+        self.googleAnalytics(controllerName: "Favourite Ads Controller")
+        if defaults.bool(forKey: "isGuest") {
+            self.oltAdPost.isHidden = true
         }
-        else {
-            self.addLeftBarButtonWithImage(#imageLiteral(resourceName: "menu"))
-        }
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Favourite Ads Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        
         self.adForest_settingsData()
         self.adForest_favouriteAdsData()
     }
     
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-       // scrollBar.contentSize = CGSize(width: self.view.frame.size.width, height: 800)
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+//        if AddsHandler.sharedInstance.objMyAds == nil{
+//            self.adForest_settingsData()
+//            self.adForest_favouriteAdsData()
+//        }
     }
     
-    
     //MARK: - Custom
+    
+    @objc func refreshTableView() {
+        adForest_favouriteAdsData()
+    }
+    
     func showLoader() {
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
@@ -126,9 +128,9 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
             self.title = objData?.pageTitle
             
             if let imgUrl = URL(string: (objData?.profile.profileImg)!) {
-                self.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                self.imgPicture.sd_setIndicatorStyle(.gray)
                 self.imgPicture.sd_setShowActivityIndicatorView(true)
+                self.imgPicture.sd_setIndicatorStyle(.gray)
+                self.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
             if let userName = objData?.profile.displayName {
                 self.lblName.text = userName
@@ -149,11 +151,11 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
             if let rateBar = objData?.profile.rateBar.number {
                 self.ratingBar.settings.updateOnTouch = false
                 self.ratingBar.settings.fillMode = .precise
-                self.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: "#ffcc00")
+                self.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: Constants.AppColor.ratingColor)
                 self.ratingBar.rating = Double(rateBar)!
             }
             if let avgRating = objData?.profile.rateBar.text {
-                self.lblLikes.text = avgRating
+                ratingBar.text = avgRating
             }
             
             if let soldAds = objData?.profile.adsSold {
@@ -173,10 +175,7 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
     func adForest_settingsData() {
         if let settingsInfo = defaults.object(forKey: "settings") {
             settingObject = NSKeyedUnarchiver.unarchiveObject(with: settingsInfo as! Data) as! [String : Any]
-            print(settingObject)
-        
             let model = SettingsRoot(fromDictionary: settingObject)
-            print(model)
             
             if let dialogMSg = model.data.dialog.confirmation.title {
                 self.popUpMsg = dialogMSg
@@ -193,14 +192,49 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
         }
     }
     
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    if objData?.position == "top" {
+                        self.containerViewProfile.translatesAutoresizingMaskIntoConstraints = false
+                        self.containerViewProfile.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                    }
+                    else {
+                        self.collectionView.translatesAutoresizingMaskIntoConstraints = false
+                        self.collectionView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: 70).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
+    }
+
     //MARK:- Table View Delegate Methods
-    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
     }
-    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        
         if dataArray.count == 0 {
             self.collectionView.isHidden = true
             lblNoData.isHidden = false
@@ -216,9 +250,9 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
         
         for images in objData.adImages {
             if let imgUrl = URL(string: images.thumb) {
-                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
+                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
         
@@ -239,51 +273,27 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
         let statusType = objData.adStatus.status
         
         if statusType == "expired" {
-            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: "#d9534f")
+            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.expired)
         }
         else if statusType == "active" {
-            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: "#4caf50")
+            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.active)
         }
         else if statusType == "sold" {
-            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: "#3498db")
+            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.sold)
         }
-        
         cell.crossAction = { () in
             let alert = UIAlertController(title: self.popUpMsg, message: self.popUpText, preferredStyle: .alert)
-            
             let okAction = UIAlertAction(title: self.popUpOkButton, style: .default, handler: { (okAction) in
-                
                 let parameter : [String: Any] = ["ad_id": objData.adId]
                 print(parameter)
                 self.adForest_removeFavourite(param: parameter as NSDictionary)
             })
-            
             let cancelAction = UIAlertAction(title: self.popUpCancelButton, style: .default, handler: nil)
-            
             alert.addAction(cancelAction)
             alert.addAction(okAction)
             self.presentVC(alert)
         }
-        
         return cell
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-
-        if Constants.isiPhone5 {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 230 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isIphoneX {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 160 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isIphone6 {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 190 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isiPadDevice {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 200)
-        }
-        return CGSize(width: 139 * (self.view.frame.size.width/295), height: 190 * (self.view.frame.size.height/568))
-        
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -294,33 +304,41 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-       
         if collectionView.isDragging {
             cell.transform = CGAffineTransform.init(scaleX: 0.5, y: 0.5)
             UIView.animate(withDuration: 0.3, animations: {
                 cell.transform = CGAffineTransform.identity
             })
         }
-        
-        let objData = AddsHandler.sharedInstance.objMyAds
-        let lastElement = dataArray.count - 1
-        if indexPath.row == lastElement {
-            if (objData?.pagination.hasNextPage)! {
-                let param: [String: Any] = ["page_number": objData?.pagination.nextPage]
-                self.adForest_loadMoreData(param: param as NSDictionary)
-            }
+        if indexPath.row == dataArray.count - 1 && currentPage < maximumPage  {
+            currentPage = currentPage + 1
+            let param: [String: Any] = ["page_number": currentPage]
+            self.adForest_loadMoreData(param: param as NSDictionary)
         }
     }
     
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if Constants.isiPadDevice {
+            let width = collectionView.bounds.width/3.0
+            return CGSize(width: width, height: 200)
+        }
+        let width = collectionView.bounds.width/2.0
+        return CGSize(width: width, height: 200)
+    }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 8
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    //MARK:- IBActions
     @IBAction func editProfile(_ sender: Any) {
         let editProfileVC = self.storyboard?.instantiateViewController(withIdentifier: "EditProfileController") as! EditProfileController
         self.navigationController?.pushViewController(editProfileVC, animated: true)
@@ -338,14 +356,16 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
         self.showLoader()
         AddsHandler.favouriteAds(success: { (successResponse) in
             self.stopAnimating()
+            self.refreshControl.endRefreshing()
             if successResponse.success {
                 self.noAddTitle = successResponse.message
+                self.currentPage = successResponse.data.pagination.currentPage
+                self.maximumPage = successResponse.data.pagination.maxNumPages
                 AddsHandler.sharedInstance.objMyAds = successResponse.data
                 self.dataArray = successResponse.data.ads
                 self.adForest_populateData()
                 self.collectionView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -361,6 +381,7 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
         self.showLoader()
         AddsHandler.moreFavouriteData(param: param, success: { (successResponse) in
             self.stopAnimating()
+            self.refreshControl.endRefreshing()
             if successResponse.success {
                 AddsHandler.sharedInstance.objMyAds = successResponse.data
                 self.dataArray.append(contentsOf: successResponse.data.ads)
@@ -402,28 +423,3 @@ class FavouriteAdsController: UIViewController, UIScrollViewDelegate, UICollecti
     }
 }
 
-class FavouriteCollectionCell: UICollectionViewCell {
-    
-    //MARK:- Outlets
-    @IBOutlet weak var containerView: UIView! {
-        didSet {
-            containerView.addShadowToView()
-        }
-    }
-    
-    @IBOutlet weak var imgPicture: UIImageView!
-    @IBOutlet weak var lblAddType: UILabel!
-    @IBOutlet weak var lblName: UILabel!
-    @IBOutlet weak var lblPrice: UILabel!
-    @IBOutlet weak var buttonCancel: UIButton!
-    
-    //MARK:- Properties
-    
-    var crossAction: (()->())?
-    
-    @IBAction func actionCancel(_ sender: Any) {
-        crossAction?()
-        print("Crossed")
-    }
-    
-}

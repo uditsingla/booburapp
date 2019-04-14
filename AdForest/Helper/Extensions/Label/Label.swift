@@ -25,7 +25,6 @@ extension UILabel {
         layer.cornerRadius = cornor
         layer.borderColor = UIColor.white.cgColor
         clipsToBounds = true
-        
     }
 }
 
@@ -39,3 +38,23 @@ extension UILabel {
         }
     }
 }
+
+
+extension NSMutableAttributedString {
+    @discardableResult func bold(_ text: String) -> NSMutableAttributedString {
+        let attrs: [NSAttributedStringKey: Any] = [.font: UIFont(name: "AvenirNext-Medium", size: 12)!]
+        let boldString = NSMutableAttributedString(string:text, attributes: attrs)
+        append(boldString)
+        
+        return self
+    }
+    
+    @discardableResult func normal(_ text: String) -> NSMutableAttributedString {
+        let normal = NSAttributedString(string: text)
+        append(normal)
+        
+        return self
+    }
+}
+
+

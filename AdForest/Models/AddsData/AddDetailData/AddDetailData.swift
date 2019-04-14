@@ -23,7 +23,10 @@ struct AddDetailData {
     var shareInfo : AddDetailShareInfo!
     var staticText : AddDetailStaticText!
     
-    
+    var cantReportTxt : String!
+    var clickHereText : String!
+    var editTxt : String!
+    var showPhoneToLogin: Bool!
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
      */
@@ -60,6 +63,10 @@ struct AddDetailData {
         if let staticTextData = dictionary["static_text"] as? [String:Any]{
             staticText = AddDetailStaticText(fromDictionary: staticTextData)
         }
+        cantReportTxt = dictionary["cant_report_txt"] as? String
+        clickHereText = dictionary["click_here_text"] as? String
+        editTxt = dictionary["edit_txt"] as? String
+        showPhoneToLogin = dictionary["show_phone_to_login"] as? Bool
     }
     
     /**
@@ -103,6 +110,18 @@ struct AddDetailData {
         }
         if staticText != nil{
             dictionary["static_text"] = staticText.toDictionary()
+        }
+        if cantReportTxt != nil{
+            dictionary["cant_report_txt"] = cantReportTxt
+        }
+        if clickHereText != nil{
+            dictionary["click_here_text"] = clickHereText
+        }
+        if editTxt != nil{
+            dictionary["edit_txt"] = editTxt
+        }
+        if showPhoneToLogin != nil {
+            dictionary["show_phone_to_login"] = showPhoneToLogin
         }
         return dictionary
     }

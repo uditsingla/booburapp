@@ -1044,15 +1044,17 @@ extension UIViewController {
     public func addLeftBarButtonWithImage(_ buttonImage: UIImage) {
         let leftButton = UIButton(type: .custom)
         if #available(iOS 11, *) {
-            leftButton.widthAnchor.constraint(equalToConstant: 30).isActive = true
-            leftButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+            leftButton.widthAnchor.constraint(equalToConstant: 25).isActive = true
+            leftButton.heightAnchor.constraint(equalToConstant: 25).isActive = true
+        } else {
+            leftButton.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
         }
-        else {
-            leftButton.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
-        }
-        
         leftButton.setBackgroundImage(buttonImage, for: .normal)
-        leftButton.addTarget(self, action: #selector(self.toggleLeft), for: .touchUpInside)
+        if UserDefaults.standard.bool(forKey: "isRtl") {
+            leftButton.addTarget(self, action: #selector(self.toggleRight), for: .touchUpInside)
+        } else {
+             leftButton.addTarget(self, action: #selector(self.toggleLeft), for: .touchUpInside)
+        }
         let barButton = UIBarButtonItem(customView: leftButton)
         navigationItem.leftBarButtonItem = barButton
     }
@@ -1060,11 +1062,11 @@ extension UIViewController {
     public func addRightBarButtonWithImage(_ buttonImage: UIImage) {
         let leftButton = UIButton(type: .custom)
         if #available(iOS 11, *) {
-            leftButton.widthAnchor.constraint(equalToConstant: 30).isActive = true
-            leftButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+            leftButton.widthAnchor.constraint(equalToConstant: 25).isActive = true
+            leftButton.heightAnchor.constraint(equalToConstant: 25).isActive = true
         }
         else {
-            leftButton.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+            leftButton.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
         }
         leftButton.setBackgroundImage(buttonImage, for: .normal)
         leftButton.addTarget(self, action: #selector(self.toggleRight), for: .touchUpInside)

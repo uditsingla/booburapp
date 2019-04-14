@@ -8,10 +8,6 @@
 
 import UIKit
 
-//protocol AddDetailDelegate{
-//    func goToAddDetail(ad_id : Int)
-//}
-
 
 class HomeFeatureAddCell: UITableViewCell, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
 
@@ -39,18 +35,24 @@ class HomeFeatureAddCell: UITableViewCell, UICollectionViewDelegate, UICollectio
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
+        self.startTimer()
     }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
+    
+    //MARK:- Custom
+    func startTimer() {
+        Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(scrollToNextCell), userInfo: nil, repeats: true)
+    }
+  
+    @objc func scrollToNextCell() {
+        let cellSize = CGSize(width: frame.width, height: frame.height)
+        let contentOffset = collectionView.contentOffset
+        collectionView.scrollRectToVisible(CGRect(x: contentOffset.x + cellSize.width, y: contentOffset.y, width: cellSize.width, height: cellSize.height), animated: true)
     }
     
     //MARK:- Collection View Delegate Methods
-    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return dataArray.count
     }
-    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell:  HomeFeatureCollectionCell = collectionView.dequeueReusableCell(withReuseIdentifier: "HomeFeatureCollectionCell", for: indexPath) as! HomeFeatureCollectionCell
         let objData = dataArray[indexPath.row]
@@ -76,26 +78,16 @@ class HomeFeatureAddCell: UITableViewCell, UICollectionViewDelegate, UICollectio
             cell.lblFeatured.text = featurText
             cell.lblFeatured.backgroundColor = Constants.hexStringToUIColor(hex: "#E52D27")
         }
+        cell.btnFullAction = { () in
+            self.delegate?.goToAddDetail(ad_id: objData.adId)
+        }
+    
         return cell
     }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let objData = dataArray[indexPath.row]
-        self.delegate?.goToAddDetail(ad_id: objData.adId)
-    }
+ 
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
         return CGSize(width: 140, height: 210)
-    }
-    
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 4
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -105,6 +97,18 @@ class HomeFeatureAddCell: UITableViewCell, UICollectionViewDelegate, UICollectio
                 cell.transform = CGAffineTransform.identity
             })
         }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
     }
     
 }

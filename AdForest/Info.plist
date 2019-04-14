@@ -2,22 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key></key>
+	<string></string>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en_US</string>
-	<key>CFBundleDisplayName</key>
-	<string>Boobur</string>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.GlixenTech.AdForest</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>Adforest</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.6.0</string>
+	<string>2.2.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -25,7 +25,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.61534785658-4kjb46sedq3g9mnibh98bbn8pmg5ndua</string>
+				<string>com.googleusercontent.apps.170168176816-cni27t9d6mkg9mmidp62hhm0urm4vlfn</string>
 			</array>
 		</dict>
 		<dict>
@@ -33,16 +33,16 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>fb235606407222526</string>
+				<string>fb182768595667719</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>FacebookAppID</key>
-	<string>235606407222526</string>
+	<string>182768595667719</string>
 	<key>FacebookDisplayName</key>
-	<string>Boobur</string>
+	<string>Adforest</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>fbapi</string>
@@ -62,14 +62,16 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>AdForest Want to access you camera!</string>
-	<key>NSLocationAlwaysUsageDescription</key>
+	<string>App needs to access Camera while posting ad as well as for profile picture!</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>App needs to access your location while searching nearby adds</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>App needs to access your location while searching nearby adds</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>App needs to access photos while posting ad as well as for profile picture!</string>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>location</string>
+		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>

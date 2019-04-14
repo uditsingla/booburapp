@@ -24,7 +24,7 @@ class ReplyCell: UITableViewCell {
     }
     @IBOutlet weak var lblName: UILabel!
     @IBOutlet weak var oltReply: UIButton!
-    @IBOutlet weak var ratingBar: CosmosView!
+    @IBOutlet weak var ratingBar: CosmosView! 
     @IBOutlet weak var imgDate: UIImageView!
     @IBOutlet weak var lblDate: UILabel!
     @IBOutlet weak var lblReply: UILabel!

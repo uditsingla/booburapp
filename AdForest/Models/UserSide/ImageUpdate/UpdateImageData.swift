@@ -17,7 +17,7 @@ struct UpdateImageData {
      * Instantiate the instance using the passed dictionary values to set the properties values
      */
     init(fromDictionary dictionary: [String:Any]){
-        profileImg = dictionary["profile_img"] as? AnyObject
+        profileImg = dictionary["profile_img"] as AnyObject 
     }
     
     /**

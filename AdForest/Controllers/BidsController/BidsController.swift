@@ -9,8 +9,8 @@
 import UIKit
 import XLPagerTabStrip
 import NVActivityIndicatorView
-class BidsController: ButtonBarPagerTabStripViewController, NVActivityIndicatorViewable {
 
+class BidsController: ButtonBarPagerTabStripViewController, NVActivityIndicatorViewable {
     
     //MARK:- Properties
     
@@ -20,7 +20,7 @@ class BidsController: ButtonBarPagerTabStripViewController, NVActivityIndicatorV
         self.customizePagerTabStrip()
         super.viewDidLoad()
         self.showBackButton()
-        
+        self.adMob()
         let param: [String: Any] = ["ad_id": adID]
         print(param)
         self.adForest_bidsData(param: param as NSDictionary)
@@ -28,7 +28,6 @@ class BidsController: ButtonBarPagerTabStripViewController, NVActivityIndicatorV
     
     func customizePagerTabStrip() {
         settings.style.buttonBarBackgroundColor = .white
-//        settings.style.buttonBarItemBackgroundColor = UIColor(red: 249/255, green: 135/255, blue: 71/255, alpha: 1)
         var colorString = ""
         if let mainColor = UserDefaults.standard.string(forKey: "mainColor"){
             colorString = mainColor
@@ -39,7 +38,6 @@ class BidsController: ButtonBarPagerTabStripViewController, NVActivityIndicatorV
         settings.style.selectedBarHeight = 2.0
         settings.style.buttonBarMinimumLineSpacing = 0.0
         settings.style.buttonBarItemTitleColor = UIColor.red
-     //   settings.style.buttonBarItemTitleColor = UIColor(red: 249/255, green: 135/255, blue: 71/255, alpha: 1)
         settings.style.buttonBarItemsShouldFillAvailiableWidth = true
         settings.style.buttonBarLeftContentInset = 0
         settings.style.buttonBarRightContentInset = 0
@@ -64,6 +62,40 @@ class BidsController: ButtonBarPagerTabStripViewController, NVActivityIndicatorV
     //MARK: - Custom
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
+    }
+    
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                   
+                    if objData?.position == "top" {
+
+                    }
+                    else {
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
     }
     
     //MARK:- API Call

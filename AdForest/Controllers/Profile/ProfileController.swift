@@ -9,9 +9,8 @@
 import UIKit
 import SlideMenuControllerSwift
 import NVActivityIndicatorView
-import GoogleMobileAds
 
-class ProfileController: UIViewController , UITableViewDelegate, UITableViewDataSource, NVActivityIndicatorViewable, GADBannerViewDelegate {
+class ProfileController: UIViewController , UITableViewDelegate, UITableViewDataSource, NVActivityIndicatorViewable, SwiftyAdDelegate {
     
     //MARK:- Outlets
     
@@ -29,75 +28,39 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
             tableView.dataSource = self
             tableView.tableFooterView = UIView()
             tableView.separatorStyle = .none
-            let nib = UINib(nibName: "ProfileCell", bundle: nil)
-            tableView.register(nib, forCellReuseIdentifier: "ProfileCell")
-            let statusNib = UINib(nibName: "AddsStatusCell", bundle: nil)
-            tableView.register(statusNib, forCellReuseIdentifier: "AddsStatusCell")
+            tableView.register(UINib(nibName: "ProfileCell", bundle: nil), forCellReuseIdentifier: "ProfileCell")
+            tableView.register(UINib(nibName: "AddsStatusCell", bundle: nil), forCellReuseIdentifier: "AddsStatusCell")
         }
     }
     
-    @IBOutlet weak var topBanner: GADBannerView!
-    @IBOutlet weak var bottomBanner: GADBannerView!
-    
-    
     //MARK:- Properties
-    
     var dataArray = [ProfileDetailsData]()
-    var defaults = UserDefaults.standard
+    let defaults = UserDefaults.standard
     
     //MARK:- View Life Cycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        SwiftyAd.shared.delegate = self 
+        self.googleAnalytics(controllerName: "Profile Controller")
+        self.adMob()
         NotificationCenter.default.addObserver(forName: NSNotification.Name(Constants.NotificationName.updateUserProfile), object: nil, queue: nil) { (notification) in
             self.adForest_profileDetails()
         }
-        // self.showBannerAdd()
+        if defaults.bool(forKey: "isLogin") == false {
+            self.oltAdPost.isHidden = true
+        }
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Profile Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.addLeftBarButtonWithImage(UIImage(named: "menu")!)
         self.adForest_profileDetails()
-        if defaults.bool(forKey: "isRtl") {
-            self.addRightBarButtonWithImage(#imageLiteral(resourceName: "menu"))
-        }
-        else {
-            self.addLeftBarButtonWithImage(#imageLiteral(resourceName: "menu"))
-        }
     }
     
     //MARK: - Custom
     func showLoader() {
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
-    
-    func showBannerAdd() {
-        let request = GADRequest()
-        request.testDevices = [kGADSimulatorID]
-        topBanner.rootViewController = self
-        //set up add
-        topBanner.adUnitID = "ca-app-pub-6373485014551897/7314957162"
-        topBanner.delegate = self
-        topBanner.load(request)
-        
-        bottomBanner.rootViewController = self
-        //set up add
-        bottomBanner.adUnitID = "ca-app-pub-6373485014551897/7314957162"
-        bottomBanner.delegate = self
-        bottomBanner.load(request)
-    }
-    
     
     func verifyNumberVC() {
         let verifyVC = self.storyboard?.instantiateViewController(withIdentifier: "VerifyNumberController") as! VerifyNumberController
@@ -106,6 +69,57 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
         verifyVC.dataToShow = UserHandler.sharedInstance.objProfileDetails
         self.presentVC(verifyVC)
     }
+    
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    self.tableView.translatesAutoresizingMaskIntoConstraints = false
+                    if objData?.position == "top" {
+                        self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 45).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                    }
+                    else {
+                        self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
+    }
+    
+    //MARK:- AdMob Delegates
+    func swiftyAdDidOpen(_ swiftyAd: SwiftyAd) {
+        
+    }
+    
+    func swiftyAdDidClose(_ swiftyAd: SwiftyAd) {
+        
+    }
+    
+    func swiftyAd(_ swiftyAd: SwiftyAd, didRewardUserWithAmount rewardAmount: Int) {
+        
+    }
+    
     
     //MARK:- Table View Delegate Methods
     
@@ -128,9 +142,9 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
             let cell: ProfileCell = tableView.dequeueReusableCell(withIdentifier: "ProfileCell", for: indexPath) as! ProfileCell
             
             if let imgUrl = URL(string: objData.profileExtra.profileImg) {
-                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
+                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
             
             if let userName = objData.profileExtra.displayName {
@@ -218,10 +232,10 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
             
             if isVerificationOn {
                 if (detailsData?.extraText.isNumberVerified)! {
-                    cell.buttonPhoneVerification.backgroundColor = Constants.hexStringToUIColor(hex: "#8ac249")
+                    cell.buttonPhoneVerification.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.phoneVerified)
                 }
                 else {
-                    cell.buttonPhoneVerification.backgroundColor = Constants.hexStringToUIColor(hex: "#F25E5E")
+                    cell.buttonPhoneVerification.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.phoneNotVerified)
                     cell.clickNumberVerified = { () in
                         let alert = UIAlertController(title: detailsData?.extraText.sendSmsDialog.title, message: detailsData?.extraText.sendSmsDialog.text, preferredStyle: .alert)
                         let okAction = UIAlertAction(title: detailsData?.extraText.sendSmsDialog.btnSend, style: .default, handler: { (okAcion) in
@@ -295,19 +309,16 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
                 if let lblText = objData.blockedUsers.key {
                     cell.lblBlockedUser.text = lblText
                 }
-                
                 cell.btnBlockUser = { () in
                     let blockedVC = self.storyboard?.instantiateViewController(withIdentifier: "BlockedUserController") as! BlockedUserController
                     self.navigationController?.pushViewController(blockedVC, animated: true)
                 }
+            } else {
+                cell.oltBlockedUsers.isHidden = true
+                cell.lblBlockedUser.isHidden = true
             }
-            else {
-                 cell.oltBlockedUsers.isHidden = true
-            }
-          
             return cell
         }
-        
         return UITableViewCell()
     }
     
@@ -316,26 +327,23 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
         if section == 0 {
             let userRatingVC = self.storyboard?.instantiateViewController(withIdentifier: "UserRatingController") as! UserRatingController
             self.navigationController?.pushViewController(userRatingVC, animated: true)
-        }
-        else {
+        } else {
             
         }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let section = indexPath.section
-        var height: CGFloat = 0.0
-        if section == 0 {
-            height = 110
+        switch section {
+        case 0:
+            return 110
+        case 1:
+            return 65
+        case 2:
+            return 550
+        default:
+            return 0
         }
-        else if section == 1 {
-            height =  65
-        }
-        else if section == 2 {
-            height = 550
-        }
-        
-        return height
     }
     
     //MARK:- IBActions
@@ -348,7 +356,6 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
     //MARK:- API Call
     
     // Profile Details
-    
     func adForest_profileDetails() {
         self.showLoader()
         UserHandler.profileGet(success: { (successResponse) in
@@ -358,8 +365,7 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
                 self.title = successResponse.extraText.profileTitle
                 UserHandler.sharedInstance.objProfileDetails = successResponse
                 self.tableView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -380,8 +386,7 @@ class ProfileController: UIViewController , UITableViewDelegate, UITableViewData
                     self.verifyNumberVC()
                 })
                 self.presentVC(alert)
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -436,8 +441,7 @@ class UserProfileInformationCell: UITableViewCell {
         NSAttributedStringKey.foregroundColor : UIColor.white,
         NSAttributedStringKey.underlineStyle : 1]
     
-    
-    
+    //MARK:- view Life Cycle
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
@@ -449,7 +453,6 @@ class UserProfileInformationCell: UITableViewCell {
     
     @IBAction func actionBlockedUser(_ sender: UIButton) {
         self.btnBlockUser?()
-        print("Blocked")
     }
 }
 

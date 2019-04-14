@@ -29,14 +29,18 @@ class UserPublicProfile: UIViewController, UICollectionViewDelegate, UICollectio
     @IBOutlet weak var lblLastLogin: UILabel!
     @IBOutlet weak var ratingBar: CosmosView!
     @IBOutlet weak var imgProfile: UIImageView!
-    @IBOutlet weak var containerViewIntroduction: UIView!
+    @IBOutlet weak var containerViewIntroduction: UIView!{
+        didSet{
+            if let mainColor = self.defaults.string(forKey: "mainColor"){
+                self.containerViewIntroduction.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
     @IBOutlet weak var lblIntro: UILabel!
     @IBOutlet weak var containerViewAdds: UIView!
     @IBOutlet weak var lblSoldAds: UILabel!
     @IBOutlet weak var lblAllAds: UILabel!
     @IBOutlet weak var lblInactiveAds: UILabel!
-    @IBOutlet weak var lblRatingText: UILabel!
-    
     @IBOutlet weak var collectionViewAds: UICollectionView! {
         didSet {
             collectionViewAds.delegate = self
@@ -46,36 +50,67 @@ class UserPublicProfile: UIViewController, UICollectionViewDelegate, UICollectio
     
     //MARK:- Properties
     var dataArray = [PublicProfileAdd]()
-    
+    let defaults = UserDefaults.standard
     var userID = ""
+    var authorID = 0
+    
     //MARK:- View Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         self.showBackButton()
-        
+        self.adMob()
+        self.googleAnalytics(controllerName: "User Public Profile")
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-      
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "User Public Profile")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-        
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         let param: [String: Any] = ["user_id": userID]
         self.adForest_publicProfileData(parameter: param as NSDictionary)
     }
-   
+    
     //MARK: - Custom
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
+    
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+
+                    if objData?.position == "top" {
+                        self.containerViewProfile.translatesAutoresizingMaskIntoConstraints = false
+                        self.containerViewProfile.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                    }
+                    else {
+                        self.collectionViewAds.translatesAutoresizingMaskIntoConstraints = false
+                        self.collectionViewAds.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
+    }
+    
     
     func adForest_populateData() {
         if UserHandler.sharedInstance.objPublicProfile != nil {
@@ -84,11 +119,10 @@ class UserPublicProfile: UIViewController, UICollectionViewDelegate, UICollectio
             if let pageTitle = objData?.pageTitle {
                 self.title = pageTitle
             }
-            
             if let imgUrl = URL(string: (objData?.profileExtra.profileImg)!) {
-                self.imgProfile.sd_setImage(with: imgUrl, completed: nil)
-                self.imgProfile.sd_setIndicatorStyle(.gray)
                 self.imgProfile.sd_setShowActivityIndicatorView(true)
+                self.imgProfile.sd_setIndicatorStyle(.gray)
+                self.imgProfile.sd_setImage(with: imgUrl, completed: nil)
             }
             if let name = objData?.profileExtra.displayName {
                 self.lblName.text = name
@@ -103,17 +137,24 @@ class UserPublicProfile: UIViewController, UICollectionViewDelegate, UICollectio
             if let ratingBar = objData?.profileExtra.rateBar.number {
                 self.ratingBar.settings.updateOnTouch = false
                 self.ratingBar.settings.fillMode = .precise
-                self.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: "#ffcc00")
+                self.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: Constants.AppColor.ratingColor)
                 self.ratingBar.rating = Double(ratingBar)!
             }
             
             if let ratingText = objData?.profileExtra.rateBar.text {
-                self.lblRatingText.text = ratingText
+                self.ratingBar.text = ratingText
             }
             
-            if let introText = objData?.introduction.value {
+            guard let introText = objData?.introduction.value else {return}
+            
+            if introText == "" {
+                containerViewIntroduction.isHidden = true
+                containerViewAdds.translatesAutoresizingMaskIntoConstraints = false
+                containerViewAdds.topAnchor.constraint(equalTo: self.containerViewProfile.bottomAnchor, constant: 8).isActive = true
+            } else {
                 self.lblIntro.text = introText
             }
+          
             if let soldAds = objData?.profileExtra.adsSold {
                 self.lblSoldAds.text = soldAds
             }
@@ -123,19 +164,16 @@ class UserPublicProfile: UIViewController, UICollectionViewDelegate, UICollectio
             if let inactiveAds = objData?.profileExtra.adsInactive {
                 self.lblInactiveAds.text = inactiveAds
             }
-            
+            for authorid in (objData?.ads)! {
+                if let author_id = authorid.adAuthorId {
+                    self.authorID = author_id
+                    break
+                }
+            }
         }
         else {
             print("Empty")
         }
-    }
-    
-    private func didTouchCosmos(_ rating: Double) {
-        
-    }
-    
-    private func didFinishTouchingCosmos(_ rating: Double) {
-      
     }
     
     //MARK:- Collection View Delegate Methods
@@ -153,9 +191,9 @@ class UserPublicProfile: UIViewController, UICollectionViewDelegate, UICollectio
         
         for image in objData.adImages {
             if let imgUrl = URL(string: image.thumb) {
-                cell.imgPic.sd_setImage(with: imgUrl, completed: nil)
-                cell.imgPic.sd_setIndicatorStyle(.gray)
                 cell.imgPic.sd_setShowActivityIndicatorView(true)
+                cell.imgPic.sd_setIndicatorStyle(.gray)
+                cell.imgPic.sd_setImage(with: imgUrl, completed: nil)
             }
         }
         
@@ -172,43 +210,41 @@ class UserPublicProfile: UIViewController, UICollectionViewDelegate, UICollectio
         let statusType = objData.adStatus.status
         
         if statusType == "expired" {
-            cell.lblType.backgroundColor = Constants.hexStringToUIColor(hex: "#d9534f")
+            cell.lblType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.expired)
         }
         else if statusType == "active" {
-            cell.lblType.backgroundColor = Constants.hexStringToUIColor(hex: "#4caf50")
+            cell.lblType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.active)
         }
         else if statusType == "sold" {
-            cell.lblType.backgroundColor = Constants.hexStringToUIColor(hex: "#3498db")
+            cell.lblType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.sold)
         }
         return cell
     }
     
-    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let objData = dataArray[indexPath.row]
         let detailVC = self.storyboard?.instantiateViewController(withIdentifier: "AddDetailController") as! AddDetailController
         detailVC.ad_id = dataArray[indexPath.row].adId
         self.navigationController?.pushViewController(detailVC, animated: true)
     }
-    
+ 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
-        if Constants.isiPhone5 {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 230 * (self.view.frame.size.height/568))
+        if Constants.isiPadDevice {
+            let width = collectionView.bounds.width/3.0
+            return CGSize(width: width, height: 200)
         }
-        else if Constants.isIphoneX {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 160 * (self.view.frame.size.height/568))
-        }
-        else if Constants.isIphone6 {
-            return CGSize(width: 139 * (self.view.frame.size.width/295), height: 190 * (self.view.frame.size.height/568))
-        }
-        return CGSize(width: 139 * (self.view.frame.size.width/295), height: 190 * (self.view.frame.size.height/568))
+        let width = collectionView.bounds.width/2.0
+        return CGSize(width: width, height: 200)
     }
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 2
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
@@ -231,8 +267,12 @@ class UserPublicProfile: UIViewController, UICollectionViewDelegate, UICollectio
         }
     }
     
-    
-    
+    //MARK:- IBActions
+    @IBAction func actionProfileRating(_ sender: Any) {
+        let ratingVC = self.storyboard?.instantiateViewController(withIdentifier: "PublicUserRatingController") as! PublicUserRatingController
+        ratingVC.adAuthorID = String(authorID)
+        self.navigationController?.pushViewController(ratingVC, animated: true)
+    }
     
     //MARK:- Api Calls
     func adForest_publicProfileData(parameter: NSDictionary) {

@@ -13,7 +13,6 @@ import NVActivityIndicatorView
 class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewDataSource, NVActivityIndicatorViewable {
 
     //MARK:- Outlets
-    
     @IBOutlet weak var tableView: UITableView! {
         didSet {
             tableView.delegate = self
@@ -22,8 +21,7 @@ class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewD
             tableView.separatorStyle = .none
             tableView.addSubview(refreshControl)
             tableView.showsVerticalScrollIndicator = false
-            let nib = UINib(nibName: "MessagesCell", bundle: nil)
-            tableView.register(nib, forCellReuseIdentifier: "MessagesCell")
+            tableView.register(UINib(nibName: "MessagesCell", bundle: nil), forCellReuseIdentifier: "MessagesCell")
         }
     }
     
@@ -32,35 +30,28 @@ class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewD
     var dataArray = [OfferAdsItem]()
     var currentPage = 0
     var maximumPage = 0
+    
     lazy var refreshControl: UIRefreshControl = {
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action:
             #selector(refreshTableView),
                                  for: UIControlEvents.valueChanged)
-        refreshControl.tintColor = UIColor.red
-        
+        if let mainColor = defaults.string(forKey: "mainColor") {
+            refreshControl.tintColor = Constants.hexStringToUIColor(hex: mainColor)
+        }
         return refreshControl
     }()
-    
     
     //MARK:- View Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.showLoader()
-        self.adForest_getOffersData()
+        self.googleAnalytics(controllerName: "Offer on Ads")
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Offer on Ads")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.adForest_getOffersData()
+        self.showLoader()
     }
     
     //MARK: - Custom
@@ -69,6 +60,7 @@ class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     @objc func refreshTableView() {
+        self.refreshControl.beginRefreshing()
         self.adForest_getOffersData()
     }
     
@@ -84,16 +76,24 @@ class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewD
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: MessagesCell = tableView.dequeueReusableCell(withIdentifier: "MessagesCell", for: indexPath) as! MessagesCell
         let objData = dataArray[indexPath.row]
-        
+    
         for item in objData.messageAdImg {
             if let imgUrl = URL(string: item.thumb) {
-                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
+                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
         if let name = objData.messageAdTitle {
             cell.lblName.text = name
+        }
+        if objData.messageReadStatus == true {
+            cell.imgBell.image = UIImage(named: "bell")
+        } else {
+            let image = UIImage(named: "bell")
+            let tintImage = image?.tint(with: UIColor.red)
+            cell.imgBell.image = tintImage
+            cell.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.messageCellColor)
         }
         return cell
     }
@@ -116,9 +116,8 @@ class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewD
                 cell.transform = CGAffineTransform.identity
             })
         }
-    
         if indexPath.row == dataArray.count - 1 && currentPage < maximumPage {
-            currentPage = currentPage + 1
+            currentPage += 1
             let param: [String: Any] = ["page_number": currentPage]
             print(param)
             self.adForest_moreOffersData(param: param as NSDictionary)
@@ -134,15 +133,12 @@ class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewD
             if successResponse.success {
                 self.currentPage = successResponse.data.pagination.currentPage
                 self.maximumPage = successResponse.data.pagination.maxNumPages
-                UserHandler.sharedInstance.objOfferOnAdsData = successResponse.data
                 self.dataArray = successResponse.data.receivedOffers.items
                 self.tableView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
-            
         }) { (error) in
             self.stopAnimating()
             let alert = Constants.showBasicAlert(message: error.message)
@@ -156,13 +152,9 @@ class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewD
             self.stopAnimating()
             self.refreshControl.endRefreshing()
             if successResponse.success {
-                self.currentPage = successResponse.data.pagination.currentPage
-                self.maximumPage = successResponse.data.pagination.maxNumPages
-                UserHandler.sharedInstance.objOfferOnAdsData = successResponse.data
                 self.dataArray.append(contentsOf: successResponse.data.receivedOffers.items)
                 self.tableView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -172,24 +164,14 @@ class OffersOnAdsController: UIViewController, UITableViewDelegate, UITableViewD
             self.presentVC(alert)
         }
     }
-    
 }
 
 extension OffersOnAdsController: IndicatorInfoProvider {
     func indicatorInfo(for pagerTabStripController: PagerTabStripViewController) -> IndicatorInfo {
-        
-        var pagerStripTitle = ""
-        if let settingsInfo = defaults.object(forKey: "settings") {
-            let  settingObject = NSKeyedUnarchiver.unarchiveObject(with: settingsInfo as! Data) as! [String : Any]
-            print(settingObject)
-            let model = SettingsRoot(fromDictionary: settingObject)
-            print(model)
-            if let pagerTitle = model.data.messagesScreen.receive {
-                pagerStripTitle = pagerTitle
-            }
+        var pageTitle = ""
+        if let title = self.defaults.string(forKey: "receiveOffers") {
+            pageTitle =  title
         }
-        
-        let title = pagerStripTitle
-        return IndicatorInfo(title: title)
+        return IndicatorInfo(title: pageTitle)
     }
 }

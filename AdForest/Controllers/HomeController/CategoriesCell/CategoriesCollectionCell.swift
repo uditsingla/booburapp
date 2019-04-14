@@ -20,4 +20,12 @@ class CategoriesCollectionCell: UICollectionViewCell {
             imgContainer.layer.borderColor = UIColor.darkGray.cgColor
         }
     }
+    
+    var btnFullAction: (()->())?
+    
+    
+    @IBAction func actionFullButton(_ sender: Any) {
+        self.btnFullAction?()
+    }
+    
 }

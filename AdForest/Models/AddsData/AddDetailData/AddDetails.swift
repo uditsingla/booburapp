@@ -39,7 +39,9 @@ struct AddDetails {
     var relatedAds : [AddDetailRelatedAd]!
     var sliderImages : [String]!
     
-    
+    var adTimer : AddDetailAdTimer!
+    var adTypeBar : AddDetailAdTypeBar!
+
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
      */
@@ -98,6 +100,13 @@ struct AddDetails {
             }
         }
         sliderImages = dictionary["slider_images"] as? [String]
+        
+        if let adTimerData = dictionary["ad_timer"] as? [String:Any]{
+            adTimer = AddDetailAdTimer(fromDictionary: adTimerData)
+        }
+        if let adTypeBarData = dictionary["ad_type_bar"] as? [String:Any]{
+            adTypeBar = AddDetailAdTypeBar(fromDictionary: adTypeBarData)
+        }
     }
     
     /**
@@ -201,6 +210,12 @@ struct AddDetails {
         }
         if sliderImages != nil{
             dictionary["slider_images"] = sliderImages
+        }
+        if adTimer != nil{
+            dictionary["ad_timer"] = adTimer.toDictionary()
+        }
+        if adTypeBar != nil{
+            dictionary["ad_type_bar"] = adTypeBar.toDictionary()
         }
         return dictionary
     }

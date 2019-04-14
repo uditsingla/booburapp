@@ -10,7 +10,7 @@ import UIKit
 
 class CategoryCell: UITableViewCell {
 
-    
+    //MARK:- Outlets
     @IBOutlet weak var containerView: UIView! {
         didSet {
             containerView.addShadowToView()
@@ -20,18 +20,18 @@ class CategoryCell: UITableViewCell {
     @IBOutlet weak var lblPath: UILabel!
     @IBOutlet weak var lblName: UILabel!
     @IBOutlet weak var lblLocation: UILabel!
-    @IBOutlet weak var lblPrice: UILabel!
+    @IBOutlet weak var lblPrice: UILabel!{
+        didSet {
+            if let mainColor = UserDefaults.standard.string(forKey: "mainColor"){
+                self.lblPrice.textColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
     
-    
+    //MARK:- View Life Cycle
     override func awakeFromNib() {
         super.awakeFromNib()
-       selectionStyle = .none
-    }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-      
+        selectionStyle = .none
     }
 
 }

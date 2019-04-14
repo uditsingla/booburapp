@@ -19,7 +19,9 @@ struct SearchData {
     var hasCatTemplate : Bool!
     var mainTitle : String!
     var values : [SearchValue]!
-   
+    var arrFields : [String]!
+    var searchValDict : SearchValueDict!
+    
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
@@ -44,6 +46,9 @@ struct SearchData {
         fieldVal = dictionary["field_val"] as? String
         hasCatTemplate = dictionary["has_cat_template"] as? Bool
         mainTitle = dictionary["main_title"] as? String
+        if let searchValDic = dictionary["values"] as? [String:Any]{
+            searchValDict = SearchValueDict(fromDictionary: searchValDic)
+        }
       //  values = dictionary["values"] as? String
         values = [SearchValue]()
         if let valuesArray = dictionary["values"] as? [[String:Any]]{
@@ -99,7 +104,6 @@ struct SearchData {
             }
             dictionary["values"] = dictionaryElements
         }
-        
         
         return dictionary
     }

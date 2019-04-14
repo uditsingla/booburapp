@@ -65,13 +65,12 @@ class HomeBlogCell: UITableViewCell, UICollectionViewDelegate, UICollectionViewD
             hasImg = img
         }
         if  hasImg {
-            if let imgUrl = URL(string: objData.image){
+            if let imgUrl = URL(string: objData.image.encodeUrl()){
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
                 cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
-            
         else if hasImg == false {
             cell.imgPicture.image = #imageLiteral(resourceName: "placeholder")
         }
@@ -82,31 +81,19 @@ class HomeBlogCell: UITableViewCell, UICollectionViewDelegate, UICollectionViewD
         if let date = objData.date {
             cell.lblPrice.text = date
         }
-        
         for item in objData.cats {
             if let category = item.name {
                 cell.lblLocation.text = category
             }
         }
+        cell.btnFullAction = { () in
+            self.delegate?.blogPostID(ID: objData.postId)
+        }
         return cell
     }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let objData = dataArray[indexPath.row]
-        self.delegate?.blogPostID(ID: objData.postId)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: 140, height: 210)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 4
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -118,6 +105,18 @@ class HomeBlogCell: UITableViewCell, UICollectionViewDelegate, UICollectionViewD
         }
     }
     
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
     
     //MARK:- IBOutlets
     @IBAction func actionViewAll(_ sender: Any) {
@@ -126,6 +125,8 @@ class HomeBlogCell: UITableViewCell, UICollectionViewDelegate, UICollectionViewD
 }
 
 class HomeBlogCollectionCell : UICollectionViewCell {
+    
+    //MARK:- Outlets
     @IBOutlet weak var containerView: UIView!{
         didSet{
             containerView.addShadowToView()
@@ -135,4 +136,13 @@ class HomeBlogCollectionCell : UICollectionViewCell {
     @IBOutlet weak var lblName: UILabel!
     @IBOutlet weak var lblLocation: UILabel!
     @IBOutlet weak var lblPrice: UILabel!
+    
+    //MARK:- Properties
+    var btnFullAction: (()->())?
+    
+    //MARK:- IBActions
+    
+    @IBAction func actionFullButton(_ sender: Any) {
+        self.btnFullAction?()
+    }
 }

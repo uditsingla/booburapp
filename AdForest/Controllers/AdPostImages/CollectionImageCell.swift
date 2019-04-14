@@ -64,7 +64,6 @@ class CollectionImageCell: UITableViewCell, UICollectionViewDelegate, UICollecti
             cell.imgPictures.sd_setImage(with: imgUrl, completed: nil)
         }
         cell.btnDelete = { () in
-            
             let param: [String: Any] = ["ad_id": self.ad_id, "img_id": objData.imgId]
             print(param)
             self.removeItem(index: indexPath.row)

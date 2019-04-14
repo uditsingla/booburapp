@@ -51,7 +51,6 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
     @IBOutlet weak var imgEdit: UIImageView!
     @IBOutlet weak var buttonEditProfile: UIButton!
     @IBOutlet weak var ratingBar: CosmosView!
-    @IBOutlet weak var lblLikes: UILabel!
     @IBOutlet weak var containerViewLabels: UIView!
     @IBOutlet weak var lblSoldAds: UILabel!
     @IBOutlet weak var lblAllAds: UILabel!
@@ -68,6 +67,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
             collectionView.delegate = self
             collectionView.dataSource = self
             collectionView.showsVerticalScrollIndicator = false
+            collectionView.addSubview(refreshControl)
         }
     }
     
@@ -76,7 +76,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
     var dataArray = [MyAdsAd]()
     var profileDataArray = [ProfileDetailsData]()
     
-    var defaults = UserDefaults.standard
+    let defaults = UserDefaults.standard
     var settingObject = [String: Any]()
     var popUpMsg = ""
     var popUpText = ""
@@ -88,38 +88,45 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
     var currentPage = 0
     var maximumPage = 0
     
+    lazy var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action:
+            #selector(refreshTableView),
+                                 for: UIControlEvents.valueChanged)
+        refreshControl.tintColor = UIColor.red
+        
+        return refreshControl
+    }()
+    
     //MARK:- View Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if defaults.bool(forKey: "isRtl") {
-            self.addRightBarButtonWithImage(#imageLiteral(resourceName: "menu"))
+        self.addLeftBarButtonWithImage(UIImage(named: "menu")!)
+        self.adMob()
+        self.googleAnalytics(controllerName: "My Ads Controller")
+        if defaults.bool(forKey: "isGuest") {
+            self.oltAdPost.isHidden = true
         }
-        else {
-            self.addLeftBarButtonWithImage(#imageLiteral(resourceName: "menu"))
-        }
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
         self.adForest_settingsData()
         self.adForest_getAddsData()
+       
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "My Ads Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
+//        if AddsHandler.sharedInstance.objMyAds == nil{
+//            self.adForest_settingsData()
+//            self.adForest_getAddsData()
+//        }
     }
- 
     //MARK: - Custom
+    
+    @objc func refreshTableView() {
+       adForest_getAddsData()
+    }
+    
+    
     func showLoader() {
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
@@ -131,9 +138,9 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
             self.title = objData?.pageTitle
             
             if let imgUrl = URL(string: (objData?.profile.profileImg)!) {
-                self.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                self.imgPicture.sd_setIndicatorStyle(.gray)
                 self.imgPicture.sd_setShowActivityIndicatorView(true)
+                self.imgPicture.sd_setIndicatorStyle(.gray)
+                self.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
             if let userName = objData?.profile.displayName {
                 self.lblName.text = userName
@@ -154,11 +161,11 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
             if let rateBar = objData?.profile.rateBar.number {
                 self.ratingBar.settings.updateOnTouch = false
                 self.ratingBar.settings.fillMode = .precise
-                self.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: "#ffcc00")
+                self.ratingBar.settings.filledColor = Constants.hexStringToUIColor(hex: Constants.AppColor.ratingColor)
                 self.ratingBar.rating = Double(rateBar)!
             }
             if let avgRating = objData?.profile.rateBar.text {
-                self.lblLikes.text = avgRating
+                ratingBar.text = avgRating
             }
             
             if let soldAds = objData?.profile.adsSold {
@@ -178,11 +185,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
     func adForest_settingsData() {
         if let settingsInfo = defaults.object(forKey: "settings") {
             settingObject = NSKeyedUnarchiver.unarchiveObject(with: settingsInfo as! Data) as! [String : Any]
-            print(settingObject)
-            
             let model = SettingsRoot(fromDictionary: settingObject)
-            print(model)
-            
             if let dialogMSg = model.data.dialog.confirmation.title {
                 self.popUpMsg = dialogMSg
             }
@@ -198,13 +201,51 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
         }
     }
     
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    
+                    if objData?.position == "top" {
+                        self.containerViewProfile.translatesAutoresizingMaskIntoConstraints = false
+                        self.containerViewProfile.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 50).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                    }
+                    else {
+                        self.collectionView.translatesAutoresizingMaskIntoConstraints = false
+                        self.collectionView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: 70).isActive = true
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
+    }
+    
     
     //MARK:- Collection View Delegate Methods
-    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
        return 1
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if dataArray.count == 0 {
             self.collectionView.isHidden = true
@@ -223,12 +264,12 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
         
         for images in objData.adImages {
             if let imgUrl = URL(string: images.thumb) {
-                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
-                cell.imgPicture.sd_setIndicatorStyle(.gray)
                 cell.imgPicture.sd_setShowActivityIndicatorView(true)
+                cell.imgPicture.sd_setIndicatorStyle(.gray)
+                cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
             }
         }
-       
+        
         if let userName = objData.adTitle {
             cell.lblName.text = userName
         }
@@ -236,26 +277,22 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
             cell.lblPrice.text = price
         }
         
-        if let mainColor = defaults.string(forKey: "mainColor") {
-             cell.lblPrice.textColor = Constants.hexStringToUIColor(hex: mainColor)
-        }
-        
         if let addStatus = objData.adStatus.statusText {
             cell.lblAddType.text = addStatus
             //set drop down button status
             cell.buttonAddType.setTitle(addStatus, for: .normal)
         }
-
+        
         let statusType = objData.adStatus.status
         
         if statusType == "expired" {
-            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: "#d9534f")
+            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.expired)
         }
         else if statusType == "active" {
-              cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: "#4caf50")
+            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.active)
         }
         else if statusType == "sold" {
-              cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: "#3498db")
+            cell.lblAddType.backgroundColor = Constants.hexStringToUIColor(hex: Constants.AppColor.sold)
         }
         
         if let editText = objMainData?.text.editText {
@@ -264,7 +301,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
         if let deleteText = objMainData?.text.deleteText {
             cell.buttonDelete.setTitle(deleteText, for: .normal)
         }
-
+        
         cell.showDropDown = { () in
             if objMainData?.text.statusDropdownName != nil {
                 cell.dropDownDataArray = (objMainData?.text.statusDropdownName)!
@@ -309,13 +346,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
         let parameter : [String: Any] = ["ad_id": self.ad_id, "ad_status": self.delegateStatusMsg.lowercased()]
         self.adForest_changeAddStatus(param: parameter as NSDictionary)
     }
-    
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
-        return CGSize(width: 139 * (self.view.frame.size.width/295), height: 250)
-    }
-    
+   
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let addDetailVC = self.storyboard?.instantiateViewController(withIdentifier: "AddDetailController") as! AddDetailController
         addDetailVC.isFromMyAds = true
@@ -339,18 +370,30 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
         }     
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 8
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if Constants.isiPadDevice {
+            let width = collectionView.bounds.width/3.0
+            return CGSize(width: width, height: 250)
+        }
+        let width = collectionView.bounds.width/2.0
+        return CGSize(width: width, height: 250)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+
     //MARK:- IBActions
     @IBAction func actionEditProfile(_ sender: Any) {
         let editProfileVC = self.storyboard?.instantiateViewController(withIdentifier: "EditProfileController") as! EditProfileController
-        
         self.navigationController?.pushViewController(editProfileVC, animated: true)
     }
     
@@ -367,6 +410,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
         self.showLoader()
         AddsHandler.myAds(success: { (successResponse) in
             self.stopAnimating()
+            self.refreshControl.endRefreshing()
             if successResponse.success {
                 self.noAddTitle = successResponse.message
                 self.currentPage = successResponse.data.pagination.currentPage
@@ -376,8 +420,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
                 self.dataArray = successResponse.data.ads
                 self.adForest_populateData()
                 self.collectionView.reloadData()
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -392,6 +435,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
         self.showLoader()
         AddsHandler.moreMyAdsData(param: param, success: { (successResponse) in
             self.stopAnimating()
+            self.refreshControl.endRefreshing()
             if successResponse.success {
                 AddsHandler.sharedInstance.objMyAds = successResponse.data
                 self.dataArray.append(contentsOf: successResponse.data.ads)
@@ -420,8 +464,7 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
                     self.collectionView.reloadData()
                 })
                 self.presentVC(alert)
-            }
-            else {
+            } else {
                 let alert = Constants.showBasicAlert(message: successResponse.message)
                 self.presentVC(alert)
             }
@@ -452,152 +495,3 @@ class MyAdsController: UIViewController, UICollectionViewDelegate, UICollectionV
         }
     }
 }
-
-
-//MARK:- Cell Class
-
-class MyAdsCollectionCell: UICollectionViewCell {
-    
-    @IBOutlet weak var containerView: UIView! {
-        didSet {
-            containerView.addShadowToView()
-        }
-    }
-    
-    @IBOutlet weak var lblAddType: UILabel!
-    @IBOutlet weak var imgPicture: UIImageView!
-    @IBOutlet weak var lblName: UILabel!
-    @IBOutlet weak var lblPrice: UILabel!
-    @IBOutlet weak var containerViewAddType: UIView!
-    @IBOutlet weak var buttonAddType: UIButton! {
-        didSet {
-            buttonAddType.contentHorizontalAlignment = .left
-        }
-    }
-    @IBOutlet weak var imgEdit: UIImageView!{
-        didSet {
-            imgEdit.tintImageColor(color: UIColor.lightGray)
-        }
-    }
-    @IBOutlet weak var buttonEdit: UIButton! {
-        didSet{
-            buttonEdit.layer.borderWidth = 0.5
-            buttonEdit.layer.borderColor = UIColor.lightGray.cgColor
-        }
-    }
-    @IBOutlet weak var imgDelete: UIImageView!{
-        didSet{
-            imgDelete.tintImageColor(color: UIColor.lightGray)
-        }
-    }
-    @IBOutlet weak var buttonDelete: UIButton!{
-        didSet{
-            buttonDelete.layer.borderWidth = 0.5
-            buttonDelete.layer.borderColor = UIColor.lightGray.cgColor
-        }
-    }
-    
-    //MARK:- Properties
-    var delegate : selectedPopUpValueProtocol?
-    var dropDownDataArray = [String]()
-    var showDropDown: (() -> ())?
-    var actionEdit: (()->())?
-    var actionDelete: (()->())?
-    
-    
-    var addTypeDropDown = DropDown()
-    lazy var dropDown : [DropDown] = {
-        return [
-            self.addTypeDropDown
-        ]
-    }()
-    
-    var defaults = UserDefaults.standard
-    var settingObject = [String: Any]()
-    var popUpMsg = ""
-    var popUpText = ""
-    var popUpCancelButton = ""
-    var popUpOkButton = ""
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    
-    //MARK:- View Life Cycle
-    
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        self.adForest_settingsData()
-    }
-    
-    
-    //MARK:- Custom
-    
-    func selectCategory() {
-        addTypeDropDown.anchorView = buttonAddType
-        addTypeDropDown.dataSource = dropDownDataArray
-        
-        addTypeDropDown.selectionAction = { [unowned self] (index, item) in
-            self.buttonAddType.setTitle(item, for: .normal)
-            print("\(index, item)")
-            
-            //send data to main class in alert controller action
-            let alert = UIAlertController(title: self.popUpMsg, message: self.popUpText, preferredStyle: .alert)
-            
-            let okAction = UIAlertAction(title: self.popUpOkButton, style: .default, handler: { (okAction) in
-            self.delegate?.addStatus(status: item)
-            })
-            
-            let cancelAction = UIAlertAction(title: self.popUpCancelButton, style: .default, handler: nil)
-            
-            alert.addAction(cancelAction)
-            alert.addAction(okAction)
-            self.appDelegate.presentController(ShowVC: alert)
-        }
-    }
-    
-    
-    //MARK:- Custom
-    func adForest_settingsData() {
-        if let settingsInfo = defaults.object(forKey: "settings") {
-            settingObject = NSKeyedUnarchiver.unarchiveObject(with: settingsInfo as! Data) as! [String : Any]
-            print(settingObject)
-            
-            let model = SettingsRoot(fromDictionary: settingObject)
-            print(model)
-            
-            if let dialogMSg = model.data.dialog.confirmation.title {
-                self.popUpMsg = dialogMSg
-            }
-            if let dialogText = model.data.dialog.confirmation.text {
-                self.popUpText = dialogText
-            }
-            if let cancelText = model.data.dialog.confirmation.btnNo {
-                self.popUpCancelButton = cancelText
-            }
-            if let confirmText = model.data.dialog.confirmation.btnOk {
-                self.popUpOkButton = confirmText
-            }
-        }
-    }
-    
-    
-    //MARK:- IBActions
-    
-    @IBAction func actionAddType(_ sender: Any) {
-        showDropDown?()
-    }
-    
-    @IBAction func actionEdit(_ sender: Any) {
-        actionEdit?()
-        print("Edit")
-    }
-    
-    
-    @IBAction func actionDelete(_ sender: Any) {
-        actionDelete?()
-        print("Delete")
-    }
-
-}
-
-
-
-

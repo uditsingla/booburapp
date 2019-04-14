@@ -597,12 +597,12 @@ static NSString *g_overrideAppID = nil;
   NSString *lastAttributionPingString = [NSString stringWithFormat:@"com.facebook.sdk:lastAttributionPing%@", appID];
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   if ([defaults objectForKey:lastAttributionPingString]) {
-    return;
+    return; 
   }
   [self fetchServerConfiguration:^{
     NSDictionary *params = [FBSDKAppEventsUtility activityParametersDictionaryForEvent:@"MOBILE_APP_INSTALL"
                                                                     implicitEventsOnly:NO
-                                                             shouldAccessAdvertisingID:_serverConfiguration.isAdvertisingIDEnabled];
+                                                             shouldAccessAdvertisingID:self->_serverConfiguration.isAdvertisingIDEnabled];
     NSString *path = [NSString stringWithFormat:@"%@/activities", appID];
     FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:path
                                                          parameters:params
@@ -625,9 +625,9 @@ static NSString *g_overrideAppID = nil;
 {
   if (_serverConfiguration == nil) {
     [FBSDKServerConfigurationManager loadServerConfigurationWithCompletionBlock:^(FBSDKServerConfiguration *serverConfiguration, NSError *error) {
-      _serverConfiguration = serverConfiguration;
+        self->_serverConfiguration = serverConfiguration;
 
-      if (_serverConfiguration.implicitPurchaseLoggingEnabled) {
+        if (self->_serverConfiguration.implicitPurchaseLoggingEnabled) {
         [FBSDKPaymentObserver startObservingTransactions];
       } else {
         [FBSDKPaymentObserver stopObservingTransactions];
@@ -790,7 +790,7 @@ static NSString *g_overrideAppID = nil;
 
   [self fetchServerConfiguration:^(void) {
     NSString *receipt_data = [appEventsState extractReceiptData];
-    NSString *JSONString = [appEventsState JSONStringForEvents:_serverConfiguration.implicitLoggingEnabled];
+      NSString *JSONString = [appEventsState JSONStringForEvents:self->_serverConfiguration.implicitLoggingEnabled];
     NSData *encodedEvents = [JSONString dataUsingEncoding:NSUTF8StringEncoding];
     if (!encodedEvents) {
       [FBSDKLogger singleShotLogEntry:FBSDKLoggingBehaviorAppEvents
@@ -800,7 +800,7 @@ static NSString *g_overrideAppID = nil;
     NSMutableDictionary *postParameters = [FBSDKAppEventsUtility
                                            activityParametersDictionaryForEvent:@"CUSTOM_APP_EVENTS"
                                            implicitEventsOnly:appEventsState.areAllEventsImplicit
-                                           shouldAccessAdvertisingID:_serverConfiguration.advertisingIDEnabled];
+                                           shouldAccessAdvertisingID:self->_serverConfiguration.advertisingIDEnabled];
     NSInteger length = [receipt_data length];
     if (length > 0) {
       postParameters[@"receipt_data"] = receipt_data;

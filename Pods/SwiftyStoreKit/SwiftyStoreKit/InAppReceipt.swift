@@ -96,7 +96,8 @@ internal class InAppReceipt {
         let filteredReceiptsInfo = filterReceiptsInfo(receipts: receipts, withProductIds: [productId])
         let nonCancelledReceiptsInfo = filteredReceiptsInfo.filter { receipt in receipt["cancellation_date"] == nil }
 
-        let receiptItems = nonCancelledReceiptsInfo.flatMap { ReceiptItem(receiptInfo: $0) }
+       // let receiptItems = nonCancelledReceiptsInfo.flatMap { ReceiptItem(receiptInfo: $0) }
+        let receiptItems = nonCancelledReceiptsInfo.compactMap{ ReceiptItem(receiptInfo: $0) }
         // Verify that at least one receipt has the right product id
         if let firstItem = receiptItems.first {
             return .purchased(item: firstItem)
@@ -133,8 +134,9 @@ internal class InAppReceipt {
 
         let receiptDate = getReceiptRequestDate(inReceipt: receipt) ?? date
 
-        let receiptItems = nonCancelledReceiptsInfo.flatMap { ReceiptItem(receiptInfo: $0) }
-
+//        let receiptItems = nonCancelledReceiptsInfo.flatMap { ReceiptItem(receiptInfo: $0) }
+        let receiptItems = nonCancelledReceiptsInfo.compactMap { ReceiptItem(receiptInfo: $0) }
+       
         if nonCancelledReceiptsInfo.count > receiptItems.count {
             print("receipt has \(nonCancelledReceiptsInfo.count) items, but only \(receiptItems.count) were parsed")
         }
@@ -163,7 +165,7 @@ internal class InAppReceipt {
                 return (expirationDate, $0)
             }
         } else {
-            return receiptItems.flatMap {
+            return receiptItems.compactMap {
                 if let expirationDate = $0.subscriptionExpirationDate {
                     return (expirationDate, $0)
                 }

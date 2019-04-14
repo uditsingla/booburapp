@@ -3,8 +3,6 @@
 //
 
 
-#import "PayPalMobile.h"
-#import <Stripe/Stripe.h>
 #import <GoogleAnalytics/GAI.h>
 #import <GAI.h>
 #import "GAITracker.h"

@@ -39,6 +39,10 @@ struct SettingsData {
     var search : SettingsSearch!
     var showNearby : Bool!
     
+    var allowBlock : Bool!
+    var featuredScroll : SettingsFeaturedScroll!
+    var shopMenu : [SettingsShopMenu]!
+    var appPageTestUrl: String!
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
@@ -94,6 +98,20 @@ struct SettingsData {
             search = SettingsSearch(fromDictionary: searchData)
         }
         showNearby = dictionary["show_nearby"] as? Bool
+        
+        allowBlock = dictionary["allow_block"] as? Bool
+        if let featuredScrollData = dictionary["featured_scroll"] as? [String:Any]{
+            featuredScroll = SettingsFeaturedScroll(fromDictionary: featuredScrollData)
+        }
+        
+        shopMenu = [SettingsShopMenu]()
+        if let shopMenuArray = dictionary["shop_menu"] as? [[String:Any]]{
+            for dic in shopMenuArray{
+                let value = SettingsShopMenu(fromDictionary: dic)
+                shopMenu.append(value)
+            }
+        }
+        appPageTestUrl = dictionary["app_page_test_url"] as? String
     }
     
     /**
@@ -185,6 +203,22 @@ struct SettingsData {
         }
         if showNearby != nil{
             dictionary["show_nearby"] = showNearby
+        }
+        if allowBlock != nil{
+            dictionary["allow_block"] = allowBlock
+        }
+        if featuredScroll != nil{
+            dictionary["featured_scroll"] = featuredScroll.toDictionary()
+        }
+        if shopMenu != nil{
+            var dictionaryElements = [[String:Any]]()
+            for shopMenuElement in shopMenu {
+                dictionaryElements.append(shopMenuElement.toDictionary())
+            }
+            dictionary["shop_menu"] = dictionaryElements
+        }
+        if appPageTestUrl != nil {
+            dictionary["app_page_test_url"] = appPageTestUrl
         }
         return dictionary
     }

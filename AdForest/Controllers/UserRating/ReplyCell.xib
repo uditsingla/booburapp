@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -53,22 +53,36 @@
                                 </connections>
                             </button>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5yF-ZH-GmQ" customClass="CosmosView" customModule="Cosmos">
-                                <rect key="frame" x="56" y="33" width="120" height="20"/>
+                                <rect key="frame" x="56" y="33" width="80" height="16"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="20" id="1UY-nM-YjH"/>
-                                    <constraint firstAttribute="width" constant="120" id="V55-NV-HOt"/>
+                                    <constraint firstAttribute="height" constant="16" id="1UY-nM-YjH"/>
+                                    <constraint firstAttribute="width" constant="80" id="V55-NV-HOt"/>
                                 </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="starSize">
+                                        <real key="value" value="15"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="emptyColor">
+                                        <color key="value" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="starMargin">
+                                        <real key="value" value="1"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="emptyBorderColor">
+                                        <color key="value" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
                             </view>
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="date" translatesAutoresizingMaskIntoConstraints="NO" id="Ztz-CP-ihv">
-                                <rect key="frame" x="180" y="35" width="15" height="15"/>
+                                <rect key="frame" x="140" y="35" width="15" height="15"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="15" id="cA2-Gk-EvJ"/>
                                     <constraint firstAttribute="width" constant="15" id="zWt-cZ-Daj"/>
                                 </constraints>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3ii-3O-GId">
-                                <rect key="frame" x="199" y="33" width="97" height="20"/>
+                                <rect key="frame" x="159" y="33" width="137" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="QHm-B7-nPW"/>
                                 </constraints>
@@ -77,10 +91,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JG2-tP-hM6">
-                                <rect key="frame" x="56" y="56" width="240" height="36.5"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="30" id="Wkj-4x-9lT"/>
-                                </constraints>
+                                <rect key="frame" x="56" y="52" width="240" height="32.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                 <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
@@ -95,7 +106,7 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstAttribute="bottom" secondItem="JG2-tP-hM6" secondAttribute="bottom" id="809-sc-TRO"/>
+                            <constraint firstAttribute="bottom" secondItem="JG2-tP-hM6" secondAttribute="bottom" constant="8" id="809-sc-TRO"/>
                             <constraint firstItem="3ii-3O-GId" firstAttribute="leading" secondItem="Ztz-CP-ihv" secondAttribute="trailing" constant="4" id="8yC-eG-fJv"/>
                             <constraint firstItem="Ztz-CP-ihv" firstAttribute="top" secondItem="L24-4V-Qq5" secondAttribute="bottom" constant="6" id="9ZJ-gD-VyZ"/>
                             <constraint firstItem="L24-4V-Qq5" firstAttribute="top" secondItem="X36-zq-Fxa" secondAttribute="top" constant="8" id="BOt-qn-nl5"/>

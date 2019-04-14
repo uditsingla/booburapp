@@ -70,6 +70,17 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
         }
     }
     
+    @IBOutlet weak var containerViewBumpUpAds: UIView! {
+        didSet{
+            if let mainColor = UserDefaults.standard.string(forKey: "mainColor"){
+                containerViewBumpUpAds.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
+    @IBOutlet weak var imgCheckBump: UIImageView!
+    @IBOutlet weak var lblBumpText: UILabel!
+    
+    
     //MARK:- Properties
     let locationDropDown = DropDown()
     lazy var dropDowns : [DropDown] = {
@@ -118,8 +129,8 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
     var address = ""
     
     var isFeature = "false"
+    var isBump = false
     var localDictionary = [String: Any]()
-    
     var selectedCountry = ""
     
     
@@ -314,17 +325,25 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
                 }
             }
             if featureAdShow == false && featuredAdBuy == false {
-                        containerViewFeatureAdd.isHidden = true
+                    containerViewFeatureAdd.isHidden = true
             }
-            
-//             else if featureAdShow == false {
-//                containerViewFeatureAdd.isHidden = true
-//            }
-            
             if let postButtonTitle =  objData?.data.btnSubmit {
                 self.oltPostAdd.setTitle(postButtonTitle, for: .normal)
             }
-
+            
+            guard let isShowBump = objData?.data.profile.bumpAdIsShow else {
+                return
+            }
+            if isShowBump {
+                imgCheckBump.image = #imageLiteral(resourceName: "uncheck")
+                if let bumpText = objData?.data.profile.bumpAd.title {
+                    lblBumpText.text = bumpText
+                }
+            } else {
+                containerViewBumpUpAds.isHidden = true
+                containerViewFeatureAdd.translatesAutoresizingMaskIntoConstraints = false
+                containerViewFeatureAdd.topAnchor.constraint(equalTo: self.containerViewMap.bottomAnchor, constant: 8).isActive = true
+            }
         }
     }
     
@@ -361,7 +380,6 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
             self.selectedID = String(id)
         }
     }
-    
    
     // Google Places Delegate Methods
     
@@ -459,21 +477,16 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
     @IBAction func actionCheck(_ sender: Any) {
         if AddsHandler.sharedInstance.objAdPost != nil {
             let objData = AddsHandler.sharedInstance.objAdPost
-            
             guard let isFeatureBuy = objData?.data.profile.featuredAdBuy else {
                 return
             }
-            
             if isFeatureBuy {
                 if let featureTitle = objData?.data.profile.featuredAdNotify.text {
                     self.showToast(message: featureTitle)
                 }
-            }
-            else if isFeatureBuy == false {
+            } else if isFeatureBuy == false {
                 self.imgCheckBox.image = #imageLiteral(resourceName: "check")
-                
                 let alert = UIAlertController(title: popUpTitle, message: popUpText, preferredStyle: .alert)
-                
                 let confirm = UIAlertAction(title: popUpConfirm, style: .default) { (action) in
                     self.imgCheckBox.image = #imageLiteral(resourceName: "check")
                     self.isFeature = "true"
@@ -488,10 +501,45 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
         }
     }
     
+    @IBAction func actionBumpAd(_ sender: UIButton) {
+        if AddsHandler.sharedInstance.objAdPost != nil {
+            let objData = AddsHandler.sharedInstance.objAdPost
+            self.imgCheckBump.image = #imageLiteral(resourceName: "check")
+            var title = ""
+            var message = ""
+            var confirm = ""
+            var cancel = ""
+            
+            if let tit = objData?.data.profile.bumpAdText.title {
+                title = tit
+            }
+            if let msg = objData?.data.profile.bumpAdText.text {
+                message = msg
+            }
+            if let con = objData?.data.profile.bumpAdText.btnOk {
+                confirm = con
+            }
+            if let can = objData?.data.profile.bumpAdText.btnNo {
+                cancel = can
+            }
+            
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            let confirmAction = UIAlertAction(title: confirm, style: .default) { (action) in
+                self.imgCheckBump.image = #imageLiteral(resourceName: "check")
+                self.isBump = true
+            }
+            let cancelAction = UIAlertAction(title: cancel, style: .default) { (action) in
+                self.imgCheckBump.image = #imageLiteral(resourceName: "uncheck")
+            }
+            alert.addAction(cancelAction)
+            alert.addAction(confirmAction)
+            self.presentVC(alert)
+        }
+    }
+    
     @IBAction func actionPostAdd(_ sender: Any) {
         if address == "" {
-            let alert = Constants.showBasicAlert(message: "Location Required")
-            self.presentVC(alert)
+            self.txtAddress.shake(6, withDelta: 10, speed: 0.06)
         }
         else {
             var parameter: [String: Any] = [
@@ -502,10 +550,14 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
                 "location_long": longitude,
                 "ad_country": selectedCountry,
                 "ad_featured_ad": isFeature,
-                "ad_id": AddsHandler.sharedInstance.adPostAdId
+                "ad_id": AddsHandler.sharedInstance.adPostAdId,
+                "ad_bump_ad": isBump
             ]
+            
+            //    {"cat_id" : "275","select_colors":"#FFD700","number_range":"34","date_input":"2019-02-15|2019-02-15","radio":"button"}
             print(parameter)
             let dataArray = objArray
+            print(objArray)
             
             for (_, value) in dataArray.enumerated() {
                 if value.fieldVal == "" {
@@ -513,7 +565,6 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
                 }
                 if customArray.contains(where: { $0.fieldTypeName == value.fieldTypeName}) {
                     customDictionary[value.fieldTypeName] = value.fieldVal
-                    
                     print(customDictionary)
                 }
                 else {
@@ -521,29 +572,22 @@ class AdPostMapController: UITableViewController, GMSAutocompleteViewControllerD
                     print(addInfoDictionary)
                 }
             }
+            
+            //{"optiosn_selct_box":"Options","ad_description":"Dasdas dasd","ad_bidding":"0","advsnce_check_box":""}
+            
             customDictionary.merge(with: localDictionary)
             let custom = Constants.json(from: customDictionary)
-            print(custom)
             if AddsHandler.sharedInstance.isCategoeyTempelateOn {
                 let param: [String: Any] = ["custom_fields": custom!]
                 parameter.merge(with: param)
             }
             parameter.merge(with: addInfoDictionary)
+            parameter.merge(with: customDictionary) //Added by Furqan
             print(parameter)
              //self.dummy(param: parameter as NSDictionary)
             self.adForest_postAd(param: parameter as NSDictionary)
         }
     }
-    
-    //Dummy request
-    func dummy(param: NSDictionary) {
-        AddsHandler.dummy(parameter: param, success: { (successresponse) in
-            print(successresponse)
-        }) { (error) in
-            print(error)
-        }
-    }
-    
     
     //MARK:- API Call
     //Post Add

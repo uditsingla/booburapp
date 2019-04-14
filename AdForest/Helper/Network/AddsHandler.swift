@@ -21,11 +21,13 @@ class AddsHandler {
     var objAddDetails: AddDetailData?
     var objAdBids : BidsDataRoot?
     var objHomeData: HomeData?
-    var objHomeAdd: HomeAdd?
     var objLatestAds: HomeFeaturedAdd?
     var objCategory : CategoryRoot?
     var objAddDetailImage: AddDetailImage?
     var objAdPost : AdPostRoot?
+    var adBidTime: AddDetailAdTimer?
+    var ratingsAdds: AddDetailAdRating?
+    var userRatingForm: UserPublicRatingForm?
     
     var isShowFeatureOnCategory = false
     var isFromHomeFeature = false
@@ -96,7 +98,7 @@ class AddsHandler {
              failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
         }
     }
-    
+   
     //MARK:- Get My Adds Data
     
     class func myAds (success: @escaping(MyAdsRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
@@ -425,8 +427,6 @@ class AddsHandler {
         }
     }
     
-    
-    
     //MARK:- AdPost Upload Images
     class func adPostUploadImages(parameter: NSDictionary , imagesArray: [UIImage], fileName: String, uploadProgress: @escaping(Int)-> Void, success: @escaping(AdPostImagesRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
         
@@ -438,7 +438,6 @@ class AddsHandler {
             let dictionary = successResponse as! [String: Any]
             let objImg = AdPostImagesRoot(fromDictionary: dictionary)
             success(objImg)
-            
         }) { (error) in
              failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
         }
@@ -538,16 +537,67 @@ class AddsHandler {
         }
     }
     
-    class func dummy(parameter: NSDictionary, success: @escaping(AdPostLiveRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
-        let url = Constants.URL.baseUrl+Constants.URL.adPostLive
+    class func nearbyAddRequest(params: NSDictionary, success: @escaping(NearByAddSearchRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
+        let url = Constants.URL.baseUrl+Constants.URL.nearByLocation
         print(url)
-        print(parameter)
-        NetworkHandler.postDataRequest(url: url, parameters: parameter as? Parameters, success: { (successResponse) in
-             let dictionary = successResponse as! [String: Any]
-            let objSearch = AdPostLiveRoot(fromDictionary: dictionary)
+        NetworkHandler.postDataRequest(url: url, parameters: params as? Parameters, success: { (successResponse) in
+            let dictionary = successResponse as! [String: Any]
+            let objSearch = NearByAddSearchRoot(fromDictionary: dictionary)
             success(objSearch)
         }) { (error) in
-             failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
+            failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
+        }
+    }
+   
+    //MARK:- Add Detail Rating Detail
+    class func addDetailRating(parameter: NSDictionary, success: @escaping(AddRatingRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
+        let url = Constants.URL.baseUrl+Constants.URL.addDetailRating
+        print(url)
+        NetworkHandler.postRequest(url: url, parameters: parameter as? Parameters, success: { (successResponse) in
+            let dictionary = successResponse as! [String: Any]
+            let objAdd = AddRatingRoot(fromDictionary: dictionary)
+            success(objAdd)
+        }) { (error) in
+            
+        }
+    }
+    
+    //MARK:- Rating to Public User
+    class func ratingToPublicUser(parameter: NSDictionary, success: @escaping(UserPublicRatingRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
+        let url = Constants.URL.baseUrl+Constants.URL.publicUserRating
+        print(url)
+        NetworkHandler.postRequest(url: url, parameters: parameter as? Parameters, success: { (successResponse) in
+            let dictionary = successResponse as! [String:Any]
+            let objRate = UserPublicRatingRoot(fromDictionary: dictionary)
+            success(objRate)
+        }) { (error) in
+            failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
+        }
+    }
+    
+    //MARK:- Post User Rating
+    class func postUserRating(param: NSDictionary, success: @escaping(UserPublicRatingRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
+        let url = Constants.URL.baseUrl+Constants.URL.postRating
+        print(url)
+        NetworkHandler.postRequest(url: url, parameters: param as? Parameters, success: { (successResponse) in
+            let dictionary = successResponse as! [String: Any]
+            let objRate = UserPublicRatingRoot(fromDictionary: dictionary)
+            success(objRate)
+        }) { (error) in
+            failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
+        }
+    }
+    
+    //MARK:- Locations Details Data
+    class func locationDetails(parameter: NSDictionary, success: @escaping(LocationDetailRoot)-> Void, failure: @escaping(NetworkError)-> Void) {
+        let url = Constants.URL.baseUrl+Constants.URL.locationDetail
+        print(url)
+        NetworkHandler.postRequest(url: url, parameters: parameter as? Parameters, success: { (successResponse) in
+            let dictionary = successResponse as! [String: Any]
+            let objDetail = LocationDetailRoot(fromDictionary: dictionary)
+            success(objDetail)
+        }) { (error) in
+              failure(NetworkError(status: Constants.NetworkError.generic, message: error.message))
         }
     }
 }

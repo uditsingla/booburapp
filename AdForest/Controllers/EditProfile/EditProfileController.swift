@@ -55,28 +55,58 @@ class EditProfileController: UIViewController, UITableViewDelegate, UITableViewD
         super.viewDidLoad()
         self.title = UserHandler.sharedInstance.objProfileDetails?.extraText.profileEditTitle
         self.showBackButton()
+        self.googleAnalytics(controllerName: "Edit Profile Controller")
         self.hideKeyboard()
         self.adForest_profileDetails()
+        self.adMob()
+        if defaults.bool(forKey: "isGuest") {
+            self.oltAdPost.isHidden = true
+        }
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Edit Profile Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-    }
-    //MARK:- Custom
     
+    //MARK:- Custom
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
     
+    func adMob() {
+        if UserHandler.sharedInstance.objAdMob != nil {
+            let objData = UserHandler.sharedInstance.objAdMob
+            
+            var isShowAd = false
+            if let adShow = objData?.show {
+                isShowAd = adShow
+            }
+            if isShowAd {
+                var isShowBanner = false
+                var isShowInterstital = false
+                
+                if let banner = objData?.isShowBanner {
+                    isShowBanner = banner
+                }
+                if let intersitial = objData?.isShowInitial {
+                    isShowInterstital = intersitial
+                }
+                
+                if isShowBanner {
+                    SwiftyAd.shared.setup(withBannerID: (objData?.bannerId)!, interstitialID: "", rewardedVideoID: "")
+                    self.tableView.translatesAutoresizingMaskIntoConstraints = false
+                    if objData?.position == "top" {
+                        SwiftyAd.shared.showBanner(from: self, at: .top)
+                        self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 45).isActive = true
+                    }
+                    else {
+                        SwiftyAd.shared.showBanner(from: self, at: .bottom)
+                        self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: 50).isActive = true
+                    }
+                }
+                if isShowInterstital {
+                    SwiftyAd.shared.setup(withBannerID: "", interstitialID: (objData?.interstitalId)!, rewardedVideoID: "")
+                    SwiftyAd.shared.showInterstitial(from: self)
+                }
+            }
+        }
+    }
     
     //MARK:- Table View Delegate Methods
     
@@ -267,7 +297,6 @@ class EditProfileController: UIViewController, UITableViewDelegate, UITableViewD
                             let param: [String: Any] = ["user_id": id]
                             print(param)
                             self.adForest_deleteAccount(param: param as NSDictionary)
-                           // self.dummyDelete(param: param as! NSDictionary)
                         }
                         let cancelAction = UIAlertAction(title: btnCancel, style: .default, handler: nil)
                         alert.addAction(cancelAction)
@@ -359,7 +388,7 @@ class EditProfileController: UIViewController, UITableViewDelegate, UITableViewD
 }
 
 
-class EditProfileCell: UITableViewCell, UITextFieldDelegate, GMSMapViewDelegate, GMSAutocompleteViewControllerDelegate, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, NVActivityIndicatorViewable  {
+class EditProfileCell: UITableViewCell, UITextFieldDelegate, GMSMapViewDelegate, GMSAutocompleteViewControllerDelegate, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, NVActivityIndicatorViewable {
 
     
     @IBOutlet weak var containerView: UIView! {
@@ -424,7 +453,6 @@ class EditProfileCell: UITableViewCell, UITextFieldDelegate, GMSMapViewDelegate,
         }
     }
     
-    // @IBOutlet weak var cstTxtAddressHeight: NSLayoutConstraint!
     //MARK:- Properties
     
     let appDel = UIApplication.shared.delegate as! AppDelegate
@@ -625,7 +653,6 @@ class EditProfileCell: UITableViewCell, UITextFieldDelegate, GMSMapViewDelegate,
             
         }, success: { (sucessResponse) in
             NVActivityIndicatorPresenter.sharedInstance.stopAnimating()
-            print(sucessResponse)
             if sucessResponse.success {
                 let alert = AlertView.prepare(title: "", message: sucessResponse.message , okAction: {
                     self.removeFileFromDocumentsDirectory(fileUrl: self.imageUrl)

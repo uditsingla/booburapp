@@ -42,6 +42,7 @@ class Bids: UIViewController, UITableViewDelegate, UITableViewDataSource, NVActi
     override func viewDidLoad() {
         super.viewDidLoad()
         self.hideKeyboard()
+        self.googleAnalytics(controllerName: "Bids Controller")
         view.backgroundColor = UIColor.groupTableViewBackground
         NotificationCenter.default.addObserver(forName: NSNotification.Name(Constants.NotificationName.updateBidsStats), object: nil, queue: nil) { (notification) in
             
@@ -73,24 +74,13 @@ class Bids: UIViewController, UITableViewDelegate, UITableViewDataSource, NVActi
             }
         }
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //Google Analytics Track data
-        let tracker = GAI.sharedInstance().defaultTracker
-        tracker?.set(kGAIScreenName, value: "Bids Controller")
-        guard let builder = GAIDictionaryBuilder.createScreenView() else {return}
-        tracker?.send(builder.build() as [NSObject: AnyObject])
-    }
     //MARK: - Custom
     func showLoader(){
         self.startAnimating(Constants.activitySize.size, message: Constants.loaderMessages.loadingMessage.rawValue,messageFont: UIFont.systemFont(ofSize: 14), type: NVActivityIndicatorType.ballClipRotatePulse)
     }
- 
+    
+  
     
     //MARK:- Table View Delegate Methods
     func numberOfSections(in tableView: UITableView) -> Int {

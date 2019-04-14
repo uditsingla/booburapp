@@ -17,6 +17,16 @@ class HomeNearAdsCell: UITableViewCell, UICollectionViewDelegate, UICollectionVi
 
     //MARK:- Outlets
     @IBOutlet weak var lblTitle: UILabel!
+    
+    @IBOutlet weak var oltViewAll: UIButton! {
+        didSet {
+            oltViewAll.roundCornors(radius: 5)
+            if let mainColor = UserDefaults.standard.string(forKey: "mainColor") {
+                oltViewAll.backgroundColor = Constants.hexStringToUIColor(hex: mainColor)
+            }
+        }
+    }
+    
     @IBOutlet weak var containerView: UIView!{
         didSet{
             containerView.addShadowToView()
@@ -30,10 +40,13 @@ class HomeNearAdsCell: UITableViewCell, UICollectionViewDelegate, UICollectionVi
         }
     }
     
+    
+    
     //MARK:- Properties
     var delegate : LocationCategoryDelegate?
     var dataArray = [CatLocation]()
     
+    var btnViewAction : (()->())?
     
     //MARK:- View Life Cycle
     override func awakeFromNib() {
@@ -68,23 +81,25 @@ class HomeNearAdsCell: UITableViewCell, UICollectionViewDelegate, UICollectionVi
             cell.imgPicture.sd_setIndicatorStyle(.gray)
             cell.imgPicture.sd_setImage(with: imgUrl, completed: nil)
         }
+        cell.btnFullAction = { () in
+             self.delegate?.goToCLocationDetail(id: objData.catId)
+        }
         return cell
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let objData = dataArray[indexPath.row]
-        self.delegate?.goToCLocationDetail(id: objData.catId)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
          return CGSize(width: 140, height: 140)
     }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 4
+   
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
@@ -95,6 +110,11 @@ class HomeNearAdsCell: UITableViewCell, UICollectionViewDelegate, UICollectionVi
                 cell.transform = CGAffineTransform.identity
             })
         }
+    }
+    
+    //MARK:- IBActions
+    @IBAction func actionViewAll(_ sender: Any) {
+        self.btnViewAction?()
     }
 }
 
@@ -120,4 +140,13 @@ class HomeNearAdsCollectionCell : UICollectionViewCell {
     @IBOutlet weak var imgPicture: UIImageView!
     @IBOutlet weak var lblName: UILabel!
     @IBOutlet weak var lblAds: UILabel!
+    
+    //MARK:- Properties
+    var btnFullAction: (()->())?
+    
+    //MARK:- IBActions
+    @IBAction func actionFullButton(_ sender: Any) {
+        self.btnFullAction?()
+    }
+    
 }
